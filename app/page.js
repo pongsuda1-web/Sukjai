@@ -9,6 +9,7 @@ import AlertCenterView from '../components/views/AlertCenterView';
 import StatsView from '../components/views/StatsView';
 import AuditLogView from '../components/views/AuditLogView';
 import SettingsView from '../components/views/SettingsView';
+import UserManagementView from '../components/views/UserManagementView';
 import { createClient } from '../utils/supabase/client';
 
 export default function DashboardPage() {
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   
   const [patients, setPatients] = useState([]);
   const [clinics, setClinics] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -69,6 +71,15 @@ export default function DashboardPage() {
       }));
       
       setPatients(formattedPatients);
+
+      // Fetch users (profiles)
+      const { data: usersData, error: usersErr } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (!usersErr) {
+        setUsers(usersData || []);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -153,6 +164,22 @@ export default function DashboardPage() {
     }
   };
 
+  const handleUpdateUser = async (id, updateData) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+      alert('อัปเดตข้อมูลบัญชีผู้ใช้สำเร็จ!');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการอัปเดตสิทธิ์: ' + err.message);
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -195,6 +222,12 @@ export default function DashboardPage() {
               <AlertCenterView isActive={activeView === 'alertCenterView'} />
               <StatsView isActive={activeView === 'statsView'} patients={patients} />
               <AuditLogView isActive={activeView === 'auditLogView'} />
+              <UserManagementView 
+                isActive={activeView === 'userManagementView'}
+                users={users}
+                currentUser={currentUser}
+                onUpdateUser={handleUpdateUser}
+              />
               <SettingsView 
                 isActive={activeView === 'settingsView'} 
                 privacyShieldActive={privacyShieldActive}

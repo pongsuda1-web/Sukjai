@@ -1,5 +1,5 @@
 "use client";
-import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck } from 'lucide-react';
+import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck, UserCog } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeView, setActiveView }) {
@@ -43,6 +43,11 @@ export default function Sidebar({ activeView, setActiveView }) {
           <li>
             <a href="#" className={`nav-item ${activeView === 'auditLogView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('auditLogView'); }}>
               <FileKey size={18}/> <span>ประวัติระบบ (Audit)</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" className={`nav-item ${activeView === 'userManagementView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('userManagementView'); }}>
+              <UserCog size={18}/> <span>จัดการผู้ใช้งาน</span>
             </a>
           </li>
           <li>
