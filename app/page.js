@@ -106,6 +106,21 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAddPatient = async (patientData) => {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .insert([patientData]);
+
+      if (error) throw error;
+      alert('บันทึกข้อมูลผู้ป่วยสำเร็จ!');
+      fetchData(); // refresh data
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -139,10 +154,12 @@ export default function DashboardPage() {
               <PatientListView 
                 isActive={activeView === 'patientListView'}
                 patients={patients}
+                clinics={clinics}
+                onAddPatient={handleAddPatient}
                 privacyShieldActive={privacyShieldActive}
               />
               <AlertCenterView isActive={activeView === 'alertCenterView'} />
-              <StatsView isActive={activeView === 'statsView'} />
+              <StatsView isActive={activeView === 'statsView'} patients={patients} />
               <AuditLogView isActive={activeView === 'auditLogView'} />
               <SettingsView 
                 isActive={activeView === 'settingsView'} 

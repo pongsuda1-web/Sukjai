@@ -1,18 +1,32 @@
 "use client";
+import { useState } from 'react';
 import { UserPlus, Download, Search } from 'lucide-react';
+import PatientForm from '../PatientForm';
 
-export default function PatientListView({ patients, privacyShieldActive, isActive }) {
+export default function PatientListView({ patients, clinics, onAddPatient, privacyShieldActive, isActive }) {
+  const [showModal, setShowModal] = useState(false);
+
   if (!isActive) return null;
 
   return (
     <section className="dashboard-view active">
+      {showModal && (
+        <PatientForm 
+          clinics={clinics}
+          onClose={() => setShowModal(false)}
+          onSave={(data) => {
+            onAddPatient(data);
+            setShowModal(false);
+          }}
+        />
+      )}
       <div className="view-header">
         <div className="view-title">
           <h2>ทะเบียนคนไข้ในการกำกับติดตาม</h2>
           <p>รายชื่อผู้ป่วยในพื้นที่รับผิดชอบและข้อมูลการประสานติดตาม</p>
         </div>
         <div className="action-buttons-wrapper" style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-primary" id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
+          <button className="btn-primary" onClick={() => setShowModal(true)} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
           <button className="btn-secondary" id="btnExportPatients"><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
         </div>
       </div>
