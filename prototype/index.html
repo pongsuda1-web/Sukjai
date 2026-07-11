@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMap — ระบบสารสนเทศการกำกับติดตามและแผนที่คนไข้จิตเวชในชุมชน</title>
+    
+    <!-- Google Fonts: Outfit & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Chart.js for Aggregated Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- App Container -->
+    <div class="app-layout">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-icon">
+                    <i data-lucide="brain-circuit"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>MindMap</h1>
+                    <span>ระบบติดตามและแผนที่คนไข้จิตเวชชุมชน</span>
+                </div>
+            </div>
+            <!-- Greeting -->
+            <div class="header-greeting" id="userGreeting"></div>
+            <!-- Global Security Info Banner -->
+            <div class="security-badge-container">
+                <span class="security-badge confidential">
+                    <i data-lucide="shield-alert"></i> CONFIDENTIAL - PDPA COMPLIANT
+                </span>
+                <span class="security-badge encryption" id="encryptionStatus">
+                    <i data-lucide="lock"></i> AES-256 ENCRYPTED
+                </span>
+            </div>
+
+            <!-- Role Selector & Privacy Shield Panel -->
+            <div class="header-controls">
+                <div class="role-selector-wrapper">
+                    <label for="roleSelector"><i data-lucide="user-cog"></i> สิทธิ์ผู้ใช้งาน:</label>
+                    <select id="roleSelector" class="role-select">
+                        <option value="doctor" selected>แพทย์ / พยาบาล (Clinical)</option>
+                        <option value="social_worker">นักสังคมสงเคราะห์ (Social)</option>
+                        <option value="jhw">อสม. / JHW (Volunteer)</option>
+                        <option value="manager">ผู้บริหาร (Management)</option>
+                        <option value="admin">IT Administrator (Logs)</option>
+                    </select>
+                </div>
+                <button id="btnLogout" class="btn-secondary" style="margin-right: 10px; padding: 0.4rem 0.8rem; font-size: 0.9rem;">
+                    <i data-lucide="log-out"></i> Logout
+                </button>
+                
+                <!-- Toggle Privacy Shield Button (Visually Demonstrates Jittering) -->
+                <div class="privacy-shield-container" id="privacyShieldToggleWrapper">
+                    <button class="btn-privacy-shield active" id="privacyShieldToggleBtn">
+                        <i data-lucide="eye-off" id="shieldIcon"></i>
+                        <span>Privacy Shield: ON</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <div class="app-body">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="app-sidebar">
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-item active" data-view="mapView" id="navMap">
+                                <i data-lucide="map"></i>
+                                <span>แผนที่กำกับติดตาม</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="patientListView" id="navPatients">
+                                <i data-lucide="users"></i>
+                                <span>ทะเบียนผู้ป่วย</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="alertCenterView" id="navAlerts">
+                                <i data-lucide="bell"></i>
+                                <span>รายการแจ้งเตือน</span>
+                                <span class="badge-alert-count" id="globalAlertBadge">0</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="statsView" id="navStats">
+                                <i data-lucide="bar-chart-3"></i>
+                                <span>รายงานสถิติรวม</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="auditLogView" id="navAudits">
+                                <i data-lucide="file-key"></i>
+                                <span>ประวัติระบบ (Audit)</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="settingsView" id="navSettings">
+                                <i data-lucide="shield-check"></i>
+                                <span>สิทธิ์คนไข้ & ตั้งค่า</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Current Role Information Card -->
+                <div class="role-info-card" id="roleInfoCard">
+                    <h3 id="roleInfoTitle">แพทย์ / พยาบาล</h3>
+                    <p id="roleInfoDesc">เข้าถึงข้อมูลทางคลินิก (วินิจฉัย ICD-10) และประวัติการรักษาทั้งหมด แผนที่เป็นพิกัดหมู่บ้าน</p>
+                </div>
+
+                <!-- Session Timer Indicator -->
+                <div class="session-timer-card">
+                    <div class="timer-details">
+                        <i data-lucide="clock"></i>
+                        <span>ตัดเซสชันอัตโนมัติใน:</span>
+                    </div>
+                    <div class="timer-countdown" id="sessionTimer">15:00</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="app-content">
+
+                <!-- 1. MAP VIEW -->
+                <section id="mapView" class="dashboard-view active">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>แผนที่ติดตามผู้ป่วยและสถานพยาบาลใกล้เคียง</h2>
+                            <p>แสดงพิกัดที่ตั้งระดับหมู่บ้าน/ตำบล (เปิดใช้งาน Privacy Shield เพื่อเยื้องพิกัดคุ้มครองความปลอดภัย)</p>
+                        </div>
+                        <div class="map-filters">
+                            <select id="mapFilterRisk" class="filter-select">
+                                <option value="all">ระดับเฝ้าระวังทั้งหมด</option>
+                                <option value="red">ระดับสูง (แดง)</option>
+                                <option value="yellow">ระดับปานกลาง (เหลือง)</option>
+                                <option value="green">ระดับต่ำ (เขียว)</option>
+                            </select>
+                            <select id="mapFilterStatus" class="filter-select">
+                                <option value="all">สถานะทั้งหมด</option>
+                                <option value="normal">มาตรวจตามนัด</option>
+                                <option value="missed">ขาดนัดสะสม</option>
+                                <option value="stopped">หยุดยา/เสี่ยง</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Map & Summary Panel Split Layout -->
+                    <div class="map-layout-grid">
+                        <div class="map-wrapper">
+                            <div id="map"></div>
+                            <!-- Loading/Offline Map Fallback -->
+                            <div class="map-offline-fallback" id="mapFallback" style="display:none;">
+                                <i data-lucide="map-pin"></i>
+                                <h3>ไม่สามารถโหลดแผนที่ได้</h3>
+                                <p>กำลังจำลองแผนที่กราฟิกความปลอดภัย...</p>
+                                <div class="mock-map-canvas" id="mockMapCanvas"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="map-sidebar-details">
+                            <div class="summary-card">
+                                <h3>สรุปสัญญลักษณ์แผนที่</h3>
+                                <div class="legend-list">
+                                    <div class="legend-item"><span class="dot red"></span> ผู้ป่วยระดับเฝ้าระวังสูง (แดง)</div>
+                                    <div class="legend-item"><span class="dot yellow"></span> ผู้ป่วยระดับเฝ้าระวังปานกลาง (เหลือง)</div>
+                                    <div class="legend-item"><span class="dot green"></span> ผู้ป่วยระดับเฝ้าระวังต่ำ (เขียว)</div>
+                                    <div class="legend-item"><span class="marker-hospital">🏥</span> โรงพยาบาลชุมชน/รพ.สต.</div>
+                                </div>
+                            </div>
+
+                            <div class="quick-details-card" id="quickDetailsPanel">
+                                <div class="card-empty-state">
+                                    <i data-lucide="mouse-pointer-click"></i>
+                                    <p>คลิกเลือกตำแหน่งผู้ป่วยบนแผนที่ เพื่อดูรายละเอียดการกำกับติดตาม</p>
+                                </div>
+                                <div class="card-patient-info" id="quickDetailsContent" style="display:none;">
+                                    <div class="card-header-info">
+                                        <h3 id="qdName">นาย สมชาย รักดี</h3>
+                                        <span class="badge" id="qdRiskBadge">ระดับสูง</span>
+                                    </div>
+                                    <div class="info-grid">
+                                        <div class="info-row"><strong>HN:</strong> <span id="qdHn">HN-001</span></div>
+                                        <div class="info-row" id="qdDxRow"><strong>การวินิจฉัย:</strong> <span id="qdDx">F20.0 (Schizophrenia)</span></div>
+                                        <div class="info-row"><strong>ระดับกำกับติดตาม:</strong> <span id="qdFollowUp">รายสัปดาห์</span></div>
+                                        <div class="info-row"><strong>วันนัดครั้งถัดไป:</strong> <span id="qdNextAppt">15 ก.ค. 2568</span></div>
+                                        <div class="info-row"><strong>สถานะนัด:</strong> <span id="qdStatus">มาตามนัดปกติ</span></div>
+                                        <div class="info-row"><strong>สถานบริการใกล้เคียง:</strong> <span id="qdClinic">รพ.สต. ตะเคียนเตี้ย</span></div>
+                                        <div class="info-row"><strong>ระยะห่าง:</strong> <span id="qdDistance">1.2 กม.</span></div>
+                                    </div>
+                                    <div class="card-actions-quick">
+                                        <button class="btn-primary" id="btnQdViewProfile"><i data-lucide="user"></i> ดูประวัติเต็ม</button>
+                                        <button class="btn-secondary" id="btnQdAcknowledge"><i data-lucide="check-circle"></i> รับทราบเคส</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. PATIENT REGISTRY VIEW -->
+                <section id="patientListView" class="dashboard-view">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>ทะเบียนคนไข้ในการกำกับติดตาม</h2>
+                            <p>รายชื่อผู้ป่วยในพื้นที่รับผิดชอบและข้อมูลการประสานติดตาม</p>
+                        </div>
+                        <div class="action-buttons-wrapper">
+                            <button class="btn-primary" id="btnAddNewPatient"><i data-lucide="user-plus"></i> เพิ่มทะเบียนคนไข้ใหม่</button>
+                            <button class="btn-secondary" id="btnExportPatients"><i data-lucide="download"></i> พิมพ์/ส่งออกรายงาน</button>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filters Panel -->
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="patientSearchInput" placeholder="ค้นหาตามชื่อ, HN, หรือตำบล...">
+                        </div>
+                        <div class="filters">
+                            <select id="filterRiskLevel" class="filter-select">
+                                <option value="all">ทุกความเสี่ยง</option>
+                                <option value="red">เฝ้าระวังสูง (แดง)</option>
+                                <option value="yellow">เฝ้าระวังปานกลาง (เหลือง)</option>
+                                <option value="green">เฝ้าระวังต่ำ (เขียว)</option>
+                            </select>
+                            <select id="filterFollowUp" class="filter-select">
+                                <option value="all">ทุกระดับติดตาม</option>
+                                <option value="weekly">รายสัปดาห์</option>
+                                <option value="monthly">รายเดือน</option>
+                                <option value="quarterly">ราย 3 เดือน</option>
+                                <option value="semi-annual">ราย 6 เดือน</option>
+                            </select>
+                            <select id="filterSmiV" class="filter-select">
+                                <option value="all">ทุกประเภท SMI-V</option>
+                                <optgroup label="ประเภท SMI-V">
+                                    <option value="SMI-V 1">SMI-V 1 (เคยใช้อาวุธ)</option>
+                                    <option value="SMI-V 2">SMI-V 2 (เคยทำร้าย ไม่ใช้อาวุธ)</option>
+                                    <option value="SMI-V 3">SMI-V 3 (คุกคาม/ข่มขู่)</option>
+                                    <option value="SMI-V 4">SMI-V 4 ไม่ใช่ SMI-V</option>
+                                    <option value="ชนิดครอบ">ชนิดครอบ (ครอบครัวมีสารเสพติด)</option>
+                                    <option value="ส่งยาเสพติด">ส่งยาเสพติด</option>
+                                    <option value="ใช้สุรา">ใช้สุรา</option>
+                                </optgroup>
+                                <optgroup label="ความยุ่งยากซับซ้อน (ไม่ใช่ SMI-V)">
+                                    <option value="ทำร้ายตนเอง/admit>3">ทำร้ายตนเอง / admit &gt;3 ครั้ง</option>
+                                    <option value="ผู้ดูแลสูงอายุ/อยู่คนเดียว">ผู้ดูแลสูงอายุ / อยู่คนเดียว</option>
+                                    <option value="admit ภายใน 180 วัน">admit ภายใน 180 วัน</option>
+                                    <option value="ขาดยา">ขาดยา</option>
+                                    <option value="นัยยะซับซ้อน">นัยยะซับซ้อน</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table Container -->
+                    <div class="table-container">
+                        <table class="data-table" id="patientsTable">
+                            <thead>
+                                <tr>
+                                    <th>HN</th>
+                                    <th>ชื่อ - นามสกุล</th>
+                                    <th>การวินิจฉัย (Dx)</th>
+                                    <th>โรงพยาบาลชุมชน (รพช.)</th>
+                                    <th>หมู่บ้าน/ตำบล</th>
+                                    <th>ระดับเฝ้าระวัง</th>
+                                    <th>ประเภท SMI-V</th>
+                                    <th>ระดับติดตาม</th>
+                                    <th>ขาดนัด (ครั้ง)</th>
+                                    <th>สถานะล่าสุด</th>
+                                    <th>NOTE</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 2.1 PATIENT ADD / EDIT DIALOG (MODAL) -->
+                <div class="modal-backdrop" id="patientModal" style="display:none;">
+                    <div class="modal-card">
+                        <div class="modal-header">
+                            <h3 id="modalTitle">เพิ่มข้อมูลทะเบียนคนไข้ใหม่</h3>
+                            <button class="btn-close-modal" id="btnModalClose">&times;</button>
+                        </div>
+                        <form id="patientForm" class="modal-form">
+                            <input type="hidden" id="patientIdx">
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="pName">ชื่อ-นามสกุล <span class="required">*</span></label>
+                                    <input type="text" id="pName" required placeholder="นาย สมชาย รักดี">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pHn">เลขทะเบียนผู้ป่วย (HN) <span class="required">*</span></label>
+                                    <input type="text" id="pHn" required placeholder="HN-XXXX">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pDx">การวินิจฉัย (ICD-10) <span class="required">*</span></label>
+                                    <input type="text" id="pDx" required placeholder="F20.0 Schizophrenia">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pRisk">ระดับการเฝ้าระวัง <span class="required">*</span></label>
+                                    <select id="pRisk" required>
+                                        <option value="red">ระดับสูง (แดง)</option>
+                                        <option value="yellow">ระดับปานกลาง (เหลือง)</option>
+                                        <option value="green" selected>ระดับต่ำ (เขียว)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pFollowUp">ระดับการกำกับติดตาม <span class="required">*</span></label>
+                                    <select id="pFollowUp" required>
+                                        <option value="รายสัปดาห์">รายสัปดาห์</option>
+                                        <option value="รายเดือน" selected>รายเดือน</option>
+                                        <option value="ราย 3 เดือน">ราย 3 เดือน</option>
+                                        <option value="ราย 6 เดือน">ราย 6 เดือน</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pVillage">หมู่บ้าน/ตำบล <span class="required">*</span></label>
+                                    <input type="text" id="pVillage" required placeholder="หมู่ 4 ต.ตะเคียนเตี้ย">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pLat">ละติจูดพิกัดจริง <span class="required">*</span></label>
+                                    <input type="number" id="pLat" step="any" required placeholder="13.0125">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pLng">ลองจิจูดพิกัดจริง <span class="required">*</span></label>
+                                    <input type="number" id="pLng" step="any" required placeholder="100.9543">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pLastVisit">การมาตรวจล่าสุด <span class="required">*</span></label>
+                                    <input type="date" id="pLastVisit" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pNextVisit">นัดครั้งต่อไป <span class="required">*</span></label>
+                                    <input type="date" id="pNextVisit" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pMissedCount">จำนวนครั้งที่ขาดนัดสะสม</label>
+                                    <input type="number" id="pMissedCount" value="0" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pMed">การรับประทานยา</label>
+                                    <select id="pMed">
+                                        <option value="สม่ำเสมอ">สม่ำเสมอ</option>
+                                        <option value="หยุดยาเอง">หยุดยาเอง / ปฏิเสธการทานยา</option>
+                                        <option value="ไม่ทราบแน่ชัด">ไม่ทราบแน่ชัด / ญาติเป็นคนจัดการ</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pSmiV">ประเภท SMI-V <span class="required">*</span></label>
+                                    <select id="pSmiV" required>
+                                        <optgroup label="ประเภท SMI-V (ความเสี่ยงรุนแรง)">
+                                            <option value="SMI-V 1">SMI-V 1 — เคยทำร้ายผู้อื่น/ตนเองด้วยอาวุธ</option>
+                                            <option value="SMI-V 2">SMI-V 2 — เคยทำร้ายผู้อื่น/ตนเองโดยไม่ใช้อาวุธ</option>
+                                            <option value="SMI-V 3">SMI-V 3 — มีพฤติกรรมคุกคาม/ข่มขู่ผู้อื่น</option>
+                                            <option value="SMI-V 4" selected>SMI-V 4 ไม่ใช่ SMI-V — ผู้ป่วยจิตเวชทั่วไป</option>
+                                            <option value="ชนิดครอบ">ชนิดครอบ — ครอบครัวมีปัญหาสารเสพติด</option>
+                                            <option value="ส่งยาเสพติด">ส่งยาเสพติด — ผู้ป่วยใช้สารเสพติดร่วม</option>
+                                            <option value="ใช้สุรา">ใช้สุรา — ผู้ป่วยดื่มแอลกอฮอล์</option>
+                                        </optgroup>
+                                        <optgroup label="ความยุ่งยากซับซ้อน (ไม่ใช่ SMI-V)">
+                                            <option value="ทำร้ายตนเอง/admit>3">ทำร้ายตนเอง / admit &gt;3 ครั้ง</option>
+                                            <option value="ผู้ดูแลสูงอายุ/อยู่คนเดียว">ผู้ดูแลสูงอายุ / อยู่คนเดียว</option>
+                                            <option value="admit ภายใน 180 วัน">admit ภายใน 180 วัน</option>
+                                            <option value="ขาดยา">ขาดยา</option>
+                                            <option value="นัยยะซับซ้อน">นัยยะซับซ้อน</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pHospital">โรงพยาบาลชุมชนที่รับผิดชอบ (รพช.) <span class="required">*</span></label>
+                                    <select id="pHospital" required>
+                                        <option value="รพช. บางละมุง" selected>รพช. บางละมุง</option>
+                                        <option value="รพช. ศรีราชา">รพช. ศรีราชา</option>
+                                        <option value="รพช. สัตหีบ">รพช. สัตหีบ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" id="btnFormCancel">ยกเลิก</button>
+                                <button type="submit" class="btn-primary" id="btnFormSave">บันทึกข้อมูล</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 2.2 FOLLOW-UP LOGS DIALOG (MODAL) -->
+                <div class="modal-backdrop" id="followUpModal" style="display:none;">
+                    <div class="modal-card" style="max-width: 550px;">
+                        <div class="modal-header">
+                            <h3>บันทึกประวัติการติดตามผู้ป่วยจิตเวช</h3>
+                            <button class="btn-close-modal" id="btnFollowClose">&times;</button>
+                        </div>
+                        <div class="modal-body" style="padding: 20px;">
+                            <div class="patient-brief-info" style="background-color: var(--primary-light); padding: 12px; border-radius: var(--border-radius-sm); margin-bottom: 16px;">
+                                <p><strong>ผู้ป่วย:</strong> <span id="fPatientName">-</span> (<span id="fPatientHn">-</span>)</p>
+                                <p><strong>ระดับเฝ้าระวังปัจจุบัน:</strong> <span id="fPatientRisk" class="badge">-</span></p>
+                            </div>
+                            
+                            <form id="followUpForm">
+                                <input type="hidden" id="fPatientId">
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label for="fFollower">ผู้ดำเนินการติดตาม <span class="required">*</span></label>
+                                    <select id="fFollower" required>
+                                        <option value="อสม.">อสม. (Health Volunteer)</option>
+                                        <option value="พยาบาลจิตเวช">พยาบาลจิตเวช / Clinical Staff</option>
+                                        <option value="นักสังคมสงเคราะห์">นักสังคมสงเคราะห์</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label for="fOutcome">ผลการติดตามคัดกรอง <span class="required">*</span></label>
+                                    <select id="fOutcome" required>
+                                        <option value="completed_stable">ติดตามสำเร็จ - ผู้ป่วยกลับมารับยา/ทานยาต่อเนื่องปกติ</option>
+                                        <option value="completed_transfer">ติดตามสำเร็จ - ประสงค์ส่งต่อไปรับการรักษาที่ รพช. อื่น</option>
+                                        <option value="in_progress">กำลังติดตาม - อยู่ระหว่างติดต่อผู้ดูแล/ติดตามที่บ้าน</option>
+                                        <option value="failed_relapse">ติดตามแล้วล้มเหลว - ผู้ป่วยอาการกำเริบก้าวร้าว ส่งต่อ รพช. ด่วน</option>
+                                        <option value="failed_not_found">ติดตามล้มเหลว - ไม่พบผู้ป่วยที่บ้าน/ไม่ทราบที่อยู่ปัจจุบัน</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label for="fNotes">บันทึกรายละเอียดการเยี่ยมบ้าน / การติดตาม</label>
+                                    <textarea id="fNotes" rows="3" required placeholder="ระบุเหตุการณ์ สภาพจิตใจเบื้องต้น หรือแผนการช่วยเหลือ..."></textarea>
+                                </div>
+
+                                <div class="past-followups-section" style="margin-bottom: 20px;">
+                                    <h4 style="font-size: 0.85rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 8px; color: var(--navy-dark);">ประวัติการติดตามครั้งก่อนหน้า</h4>
+                                    <div id="pastFollowUpsList" style="max-height: 150px; overflow-y: auto; font-size: 0.75rem; color: var(--text-muted);">
+                                        <!-- Past logs injected here -->
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" id="btnFollowCancel">ยกเลิก</button>
+                                    <button type="submit" class="btn-primary">บันทึกการติดตาม</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ALERT CENTER VIEW -->
+                <section id="alertCenterView" class="dashboard-view">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>ศูนย์การแจ้งเตือนความเสี่ยงและขาดนัด</h2>
+                            <p>แจ้งเตือนอัติโนมัติเมื่อคนไข้ขาดนัดสะสม ≥ 2 ครั้ง หรือขาดนัดนานเกิน 6 เดือน หรือมีการหยุดยาโดยพลการ</p>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards for Alerts -->
+                    <div class="alert-kpi-grid">
+                        <div class="kpi-card danger">
+                            <div class="kpi-icon"><i data-lucide="alert-triangle"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="alertKpiHigh">0</h3>
+                                <span>แจ้งเตือนรอการติดตามการด่วน</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card warning">
+                            <div class="kpi-icon"><i data-lucide="clock"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="alertKpiMissed">0</h3>
+                                <span>ขาดนัดนานเกิน 6 เดือน</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card info">
+                            <div class="kpi-icon"><i data-lucide="check-circle"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="alertKpiAck">0</h3>
+                                <span>ติดตามแล้ว (Acknowledged)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Activity Stream -->
+                    <div class="alerts-stream-wrapper">
+                        <h3>การกระทำที่รอดำเนินการ</h3>
+                        <div class="alerts-list" id="alertsListContainer">
+                            <!-- Alert elements injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. MANAGEMENT STATISTICS VIEW -->
+                <section id="statsView" class="dashboard-view">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>รายงานความก้าวหน้าสุขภาพจิตระดับพื้นที่ (สำหรับผู้บริหาร)</h2>
+                            <p>สถิติมิติด้านผลลัพธ์และความเสี่ยงโดยรวมในพื้นที่ โดยไม่มีข้อมูลส่วนบุคคลหรือรายละเอียดการระบุตัวตน (PDPA Compliant)</p>
+                        </div>
+                        <button class="btn-secondary" id="btnStatsExport"><i data-lucide="printer"></i> พิมพ์รายงานสรุป</button>
+                    </div>
+
+                    <!-- Metric Stats Grid -->
+                    <div class="kpi-dashboard-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="users-round"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="statsTotal">0</h3>
+                                <span>ผู้ป่วยจิตเวชในชุมชนทั้งหมด</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="gauge"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="statsRedPct">0%</h3>
+                                <span>สัดส่วนเคสเฝ้าระวังระดับสูง (แดง)</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="percent"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="statsMissedPct">0%</h3>
+                                <span>อัตราการขาดนัดสะสมในชุมชน</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="heart-pulse"></i></div>
+                            <div class="kpi-details">
+                                <h3 id="statsMedPct">0%</h3>
+                                <span>ความสม่ำเสมอในการรับประทานยา</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid Layout -->
+                    <div class="charts-layout-grid">
+                        <div class="chart-card">
+                            <h3>สัดส่วนระดับความเสี่ยงการเฝ้าระวัง</h3>
+                            <div class="chart-container">
+                                <canvas id="chartRiskRatio"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>อัตราความสม่ำเสมอการรับประทานยาจำแนกตามประเภทผู้ป่วย</h3>
+                            <div class="chart-container">
+                                <canvas id="chartMedAdherence"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Hospital Breakdown Section -->
+                        <div class="stats-section-divider">
+                            <h3>สรุปข้อมูลการลงทะเบียนและคัดกรองโรครายโรงพยาบาลชุมชน (รพช.)</h3>
+                        </div>
+
+                        <div class="chart-card full-width">
+                            <h3>จำนวนผู้ป่วยจิตเวชสะสม แยกตาม รพช. และกลุ่มวินิจฉัยโรค</h3>
+                            
+                            <!-- Stat Table by Hospital & Disease -->
+                            <div class="table-container stats-table-wrapper" style="margin-bottom: 24px;">
+                                <table class="data-table stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th>โรงพยาบาลชุมชน (รพช.)</th>
+                                            <th>โรคจิตเภท (Schizophrenia)</th>
+                                            <th>อารมณ์สองขั้ว (Bipolar)</th>
+                                            <th>โรคซึมเศร้า (Depression)</th>
+                                            <th>โรคอื่นๆ/สารเสพติด (Others/Substance)</th>
+                                            <th>ผู้ป่วยรวมทั้งหมด (ราย)</th>
+                                            <th>อัตราการขาดนัดเฉลี่ย</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hospitalStatsTableBody">
+                                        <!-- Injected dynamically in app.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Additional Chart for Hospital Comparison -->
+                            <div class="chart-container" style="height: 320px;">
+                                <canvas id="chartHospitalComparison"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. AUDIT LOG VIEW -->
+                <section id="auditLogView" class="dashboard-view">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>ประวัติกิจกรรมความปลอดภัยของระบบ (Audit Log)</h2>
+                            <p class="warning-text"><i data-lucide="shield-alert"></i> บันทึกประเภท Append-Only ไม่สามารถแก้ไข ปรับแต่ง หรือลบได้ เพื่อประเมินการเข้าถึงข้อมูลอ่อนไหวตามข้อกำหนด PDPA มาตรา 39</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter panel for Audit Logs -->
+                    <div class="audit-filters">
+                        <input type="text" id="auditSearchInput" placeholder="ค้นหาโดยชื่อผู้ใช้, กิจกรรม, หรือรหัสผู้ป่วย...">
+                        <select id="auditFilterAction" class="filter-select">
+                            <option value="all">กิจกรรมทั้งหมด</option>
+                            <option value="VIEW_PROFILE">การเข้าถึงข้อมูลคนไข้ (View Profile)</option>
+                            <option value="VIEW_MAP">การเปิดหน้าแผนที่ (View Map)</option>
+                            <option value="ACK_ALERT">การรับทราบการแจ้งเตือน (Acknowledge Alert)</option>
+                            <option value="EXPORT">การส่งออกข้อมูล (Export)</option>
+                            <option value="ROLE_CHANGE">การเปลี่ยนสิทธิ์ระบบ (Role Change)</option>
+                        </select>
+                    </div>
+
+                    <!-- Audit Table Container -->
+                    <div class="table-container">
+                        <table class="data-table audit-table">
+                            <thead>
+                                <tr>
+                                    <th>เวลาบันทึก (Timestamp)</th>
+                                    <th>ผู้ใช้งาน (User / Role)</th>
+                                    <th>หมวดหมู่ (Event)</th>
+                                    <th>รหัสเป้าหมาย (HN Target)</th>
+                                    <th>รายละเอียดเหตุการณ์ (Details)</th>
+                                    <th>เลขไอพี (IP Address)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTableBody">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 6. SETTINGS & PDPA RIGHTS VIEW -->
+                <section id="settingsView" class="dashboard-view">
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h2>สิทธิ์ของผู้ป่วยและการตั้งค่าระบบความปลอดภัย</h2>
+                            <p>จัดการความยินยอม (Consent Management) และคำขอใช้สิทธิ์ของคนไข้ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        
+                        <!-- PDPA Rights Form -->
+                        <div class="settings-card pdpa-card">
+                            <h3><i data-lucide="shield-check"></i> บันทึกสิทธิ์และรับคำร้องเรียนผู้ป่วย</h3>
+                            <p class="settings-card-desc">เมื่อผู้ป่วยยื่นความจำนงเกี่ยวกับการควบคุมข้อมูลส่วนบุคคล</p>
+                            
+                            <form id="pdpaRequestForm" class="settings-form">
+                                <div class="form-group">
+                                    <label for="pdpaPatientHn">เลขทะเบียนผู้ป่วย (HN) ที่ยื่นคำขอ</label>
+                                    <input type="text" id="pdpaPatientHn" placeholder="ระบุ HN ผู้ป่วย เช่น HN-001" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pdpaRightType">ประเภทสิทธิ์การใช้งานที่ต้องการร้องขอ</label>
+                                    <select id="pdpaRightType" required>
+                                        <option value="access">สิทธิ์ขอเข้าถึง/รับสำเนาข้อมูลสุขภาพ (มาตรา 30)</option>
+                                        <option value="rectify">สิทธิ์ขอแก้ไขข้อมูลให้ถูกต้อง (มาตรา 35)</option>
+                                        <option value="delete">สิทธิ์ขอให้ลบหรือทำลายข้อมูล (มาตรา 33)</option>
+                                        <option value="restrict">สิทธิ์ขอให้ระงับการแชร์ข้อมูลกับ อสม./เยี่ยมบ้าน (มาตรา 34)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pdpaDetails">เหตุผลและรายละเอียดคำขอ</label>
+                                    <textarea id="pdpaDetails" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม หรือเอกสารอ้างอิง..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn-primary"><i data-lucide="send"></i> บันทึกคำร้องและแจ้งเตือน DPO</button>
+                            </form>
+                        </div>
+
+                        <!-- System Security Configurations -->
+                        <div class="settings-card security-config-card">
+                            <h3><i data-lucide="settings"></i> การตั้งค่าความปลอดภัยระบบ</h3>
+                            
+                            <div class="security-toggle-list">
+                                <div class="toggle-item">
+                                    <div class="toggle-label">
+                                        <h4>เข้ารหัสข้อมูลการวินิจฉัย (At-Rest)</h4>
+                                        <p>เข้ารหัสฐานข้อมูลฟิลด์ ICD-10 และอาการด้วยคีย์ AES-256</p>
+                                    </div>
+                                    <div class="toggle-switch-wrapper">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked disabled>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-item">
+                                    <div class="toggle-label">
+                                        <h4>จำกัดพิกัดแผนที่ (Differential Privacy)</h4>
+                                        <p>บังคับเยื้องตำแหน่ง GPS สุ่มรัศมี 100-300 เมตร ทุกพิกัดคนไข้จิตเวช</p>
+                                    </div>
+                                    <div class="toggle-switch-wrapper">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="settingJitterToggle" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-item">
+                                    <div class="toggle-label">
+                                        <h4>จำกัดการส่งออกเอกสาร</h4>
+                                        <p>บล็อกการ Export ไฟล์สำหรับบทบาทที่ไม่ได้เป็น Clinical Staff</p>
+                                    </div>
+                                    <div class="toggle-switch-wrapper">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="settingExportToggle" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-item">
+                                    <div class="toggle-label">
+                                        <h4>ระบบควบคุมประวัติแก้ไข (Anti-Tampering)</h4>
+                                        <p>เปิดใช้งานระบบตรวจสอบการแก้ไข Log ผ่าน Hash Chain</p>
+                                    </div>
+                                    <div class="toggle-switch-wrapper">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked disabled>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Print Watermark Elements (Invisible on normal screen) -->
+    <div id="printWatermark" class="print-watermark-overlay" style="display:none;">
+        <div class="watermark-content">
+            <span class="wm-text">CONFIDENTIAL REPORT</span>
+            <span class="wm-details" id="printWatermarkDetails">EXPORT BY ROLE: doctor - DATE: 11/07/2026</span>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
