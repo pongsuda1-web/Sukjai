@@ -121,6 +121,38 @@ export default function DashboardPage() {
     }
   };
 
+  const handleEditPatient = async (id, patientData) => {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update(patientData)
+        .eq('id', id);
+
+      if (error) throw error;
+      alert('อัปเดตข้อมูลผู้ป่วยสำเร็จ!');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูล: ' + err.message);
+    }
+  };
+
+  const handleDeletePatient = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      alert('ลบข้อมูลผู้ป่วยสำเร็จ!');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + err.message);
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -156,6 +188,8 @@ export default function DashboardPage() {
                 patients={patients}
                 clinics={clinics}
                 onAddPatient={handleAddPatient}
+                onEditPatient={handleEditPatient}
+                onDeletePatient={handleDeletePatient}
                 privacyShieldActive={privacyShieldActive}
               />
               <AlertCenterView isActive={activeView === 'alertCenterView'} />

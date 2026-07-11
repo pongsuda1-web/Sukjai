@@ -5,23 +5,23 @@ import { X, Search, MapPin } from 'lucide-react';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
-export default function PatientForm({ onClose, onSave, clinics }) {
+export default function PatientForm({ onClose, onSave, clinics, initialData }) {
   const [formData, setFormData] = useState({
-    hn: '',
-    full_name: '',
-    dx: '',
-    risk: 'green',
-    smi_v: '',
-    followup_frequency: 'รายเดือน',
-    address: '',
+    hn: initialData?.hn || '',
+    full_name: initialData?.name || '',
+    dx: initialData?.dx || '',
+    risk: initialData?.risk || 'green',
+    smi_v: initialData?.smiV || '',
+    followup_frequency: initialData?.followup || 'รายเดือน',
+    address: initialData?.village || '',
     subdistrict: '',
     district: '',
     province: 'น่าน',
-    hospital_id: '',
-    notes: ''
+    hospital_id: initialData?.hospital_id || '',
+    notes: initialData?.notes || ''
   });
 
-  const [position, setPosition] = useState(null);
+  const [position, setPosition] = useState(initialData ? [initialData.lat, initialData.lng] : null);
   const [loadingGeocode, setLoadingGeocode] = useState(false);
 
   const handleChange = (e) => {
@@ -87,7 +87,9 @@ export default function PatientForm({ onClose, onSave, clinics }) {
         maxHeight: '90vh', overflowY: 'auto', padding: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#2c3e50' }}>เพิ่มทะเบียนผู้ป่วยใหม่</h2>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#2c3e50' }}>
+            {initialData ? 'แก้ไขข้อมูลผู้ป่วย' : 'เพิ่มทะเบียนผู้ป่วยใหม่'}
+          </h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
             <X size={24} />
           </button>

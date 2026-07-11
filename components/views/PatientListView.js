@@ -1,10 +1,11 @@
 "use client";
 import { useState } from 'react';
-import { UserPlus, Download, Search } from 'lucide-react';
+import { UserPlus, Download, Search, Edit2, Trash2 } from 'lucide-react';
 import PatientForm from '../PatientForm';
 
-export default function PatientListView({ patients, clinics, onAddPatient, privacyShieldActive, isActive }) {
+export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, privacyShieldActive, isActive }) {
   const [showModal, setShowModal] = useState(false);
+  const [editingPatient, setEditingPatient] = useState(null);
 
   if (!isActive) return null;
 
@@ -13,10 +14,19 @@ export default function PatientListView({ patients, clinics, onAddPatient, priva
       {showModal && (
         <PatientForm 
           clinics={clinics}
-          onClose={() => setShowModal(false)}
-          onSave={(data) => {
-            onAddPatient(data);
+          initialData={editingPatient}
+          onClose={() => {
             setShowModal(false);
+            setEditingPatient(null);
+          }}
+          onSave={(data) => {
+            if (editingPatient) {
+              onEditPatient(editingPatient.id, data);
+            } else {
+              onAddPatient(data);
+            }
+            setShowModal(false);
+            setEditingPatient(null);
           }}
         />
       )}
@@ -26,7 +36,10 @@ export default function PatientListView({ patients, clinics, onAddPatient, priva
           <p>รายชื่อผู้ป่วยในพื้นที่รับผิดชอบและข้อมูลการประสานติดตาม</p>
         </div>
         <div className="action-buttons-wrapper" style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-primary" onClick={() => setShowModal(true)} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
+          <button className="btn-primary" onClick={() => {
+            setEditingPatient(null);
+            setShowModal(true);
+          }} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
           <button className="btn-secondary" id="btnExportPatients"><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
         </div>
       </div>
@@ -66,6 +79,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, priva
               <th>ระดับติดตาม</th>
               <th>ขาดนัด</th>
               <th>NOTE</th>
+              <th>จัดการ</th>
             </tr>
           </thead>
           <tbody>
@@ -84,6 +98,29 @@ export default function PatientListView({ patients, clinics, onAddPatient, priva
                 <td>{p.followup}</td>
                 <td>{p.missedAppointments}</td>
                 <td>{p.notes || '-'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  <button 
+                    onClick={() => {
+                      setEditingPatient(p);
+                      setShowModal(true);
+                    }} 
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#185fa5', marginRight: '10px' }}
+                    title="แก้ไขข้อมูล"
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm(`คุณต้องการลบข้อมูลผู้ป่วย ${p.name} ใช่หรือไม่?\n(การลบข้อมูลจะไม่สามารถกู้คืนได้)`)) {
+                        onDeletePatient(p.id);
+                      }
+                    }} 
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53935' }}
+                    title="ลบข้อมูล"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
