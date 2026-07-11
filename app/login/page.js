@@ -3,20 +3,22 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    if (login(username, password)) {
-      // Login success is handled by AuthContext redirect
-    } else {
-      setError('บัญชียังไม่ได้รับการอนุมัติจากผู้ดูแลระบบ หรือข้อมูลไม่ถูกต้อง');
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(result.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     }
+    setLoading(false);
   };
 
   return (
@@ -41,12 +43,12 @@ export default function LoginPage() {
         </h1>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label htmlFor="username" style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>Username</label>
+            <label htmlFor="email" style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>Email</label>
             <input 
-              type="text" 
-              id="username" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email" 
+              id="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required 
               style={{ width: "100%", padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px", boxSizing: "border-box" }}
             />
@@ -62,16 +64,18 @@ export default function LoginPage() {
               style={{ width: "100%", padding: "0.5rem", border: "1px solid #ccc", borderRadius: "4px", boxSizing: "border-box" }}
             />
           </div>
-          <button type="submit" style={{
-            background: "#0277bd",
+          <button type="submit" disabled={loading} style={{
+            background: loading ? "#90caf9" : "#0277bd",
             color: "#fff",
             border: "none",
             padding: "0.6rem 1rem",
             width: "100%",
             borderRadius: "4px",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             fontWeight: 600
-          }}>Login</button>
+          }}>
+            {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
+          </button>
           
           {error && (
             <div style={{ color: "#d32f2f", marginTop: "0.5rem", fontSize: "0.9rem" }}>

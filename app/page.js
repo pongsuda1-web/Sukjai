@@ -1,10 +1,14 @@
 "use client";
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { BrainCircuit, ShieldAlert, Lock, UserCog, EyeOff, Eye, Map, Users, Bell, BarChart3, FileKey, ShieldCheck, LogOut } from 'lucide-react';
-
-const MapComponent = dynamic(() => import('../components/MapComponent'), { ssr: false });
+import Header from '../components/layout/Header';
+import Sidebar from '../components/layout/Sidebar';
+import MapView from '../components/views/MapView';
+import PatientListView from '../components/views/PatientListView';
+import AlertCenterView from '../components/views/AlertCenterView';
+import StatsView from '../components/views/StatsView';
+import AuditLogView from '../components/views/AuditLogView';
+import SettingsView from '../components/views/SettingsView';
 
 // Mock Data
 const INITIAL_PATIENTS = [
@@ -19,7 +23,7 @@ const CLINICS = [
 ];
 
 export default function DashboardPage() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   const [privacyShieldActive, setPrivacyShieldActive] = useState(true);
   const [activeView, setActiveView] = useState('mapView');
   const [patients, setPatients] = useState(INITIAL_PATIENTS);
@@ -28,136 +32,34 @@ export default function DashboardPage() {
 
   return (
     <div className="app-layout">
-      {/* Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <div className="brand-icon"><BrainCircuit /></div>
-          <div className="brand-text">
-            <h1>MindMap</h1>
-            <span>ระบบติดตามและแผนที่คนไข้จิตเวชชุมชน</span>
-          </div>
-        </div>
+      <Header 
+        privacyShieldActive={privacyShieldActive} 
+        setPrivacyShieldActive={setPrivacyShieldActive} 
+      />
 
-        <div className="header-greeting" id="userGreeting" style={{ color: '#fff', fontWeight: 500, marginLeft: '1rem' }}>
-          สวัสดีคุณ {currentUser.name}
-        </div>
-
-        <div className="security-badge-container">
-          <span className="security-badge confidential"><ShieldAlert size={14} /> CONFIDENTIAL - PDPA COMPLIANT</span>
-          <span className="security-badge encryption"><Lock size={14} /> AES-256 ENCRYPTED</span>
-        </div>
-
-        <div className="header-controls">
-          <div className="role-selector-wrapper" style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#fff'}}>
-            <UserCog size={16}/> สิทธิ์: <strong>{currentUser.role.toUpperCase()}</strong>
-          </div>
-          
-          <button 
-            className="btn-secondary" 
-            onClick={logout}
-            style={{ marginRight: '10px', padding: '0.4rem 0.8rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <LogOut size={16} /> Logout
-          </button>
-          
-          <div className="privacy-shield-container">
-            <button 
-              className={`btn-privacy-shield ${privacyShieldActive ? 'active' : ''}`}
-              onClick={() => setPrivacyShieldActive(!privacyShieldActive)}
-            >
-              {privacyShieldActive ? <EyeOff size={16} /> : <Eye size={16} />}
-              <span>Privacy Shield: {privacyShieldActive ? 'ON' : 'OFF'}</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Body */}
       <div className="app-body">
-        {/* Sidebar */}
-        <aside className="app-sidebar">
-          <nav className="sidebar-nav">
-            <ul>
-              <li>
-                <a href="#" className={`nav-item ${activeView === 'mapView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('mapView'); }}>
-                  <Map size={18}/> <span>แผนที่กำกับติดตาม</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className={`nav-item ${activeView === 'patientListView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('patientListView'); }}>
-                  <Users size={18}/> <span>ทะเบียนผู้ป่วย</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-item">
-                  <Bell size={18}/> <span>รายการแจ้งเตือน</span>
-                  <span className="badge-alert-count">0</span>
-                </a>
-              </li>
-              <li><a href="#" className="nav-item"><BarChart3 size={18}/> <span>รายงานสถิติรวม</span></a></li>
-              <li><a href="#" className="nav-item"><FileKey size={18}/> <span>ประวัติระบบ (Audit)</span></a></li>
-              <li><a href="#" className="nav-item"><ShieldCheck size={18}/> <span>สิทธิ์คนไข้ & ตั้งค่า</span></a></li>
-            </ul>
-          </nav>
-        </aside>
+        <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
-        {/* Main Content Area */}
         <main className="app-content">
-          {/* Map View */}
-          <section className="dashboard-view" style={{ display: activeView === 'mapView' ? 'block' : 'none', height: '100%' }}>
-            <div className="view-header" style={{ marginBottom: '1rem' }}>
-              <div className="view-title">
-                <h2>แผนที่ติดตามผู้ป่วยและสถานพยาบาลใกล้เคียง</h2>
-                <p>แสดงพิกัดที่ตั้งระดับหมู่บ้าน/ตำบล (เปิดใช้งาน Privacy Shield เพื่อเยื้องพิกัดคุ้มครองความปลอดภัย)</p>
-              </div>
-            </div>
-            <div className="map-wrapper" style={{ height: 'calc(100% - 80px)', borderRadius: '8px', overflow: 'hidden' }}>
-              <MapComponent patients={patients} clinics={CLINICS} privacyShieldActive={privacyShieldActive} />
-            </div>
-          </section>
-
-          {/* Patient Registry View */}
-          <section className="dashboard-view" style={{ display: activeView === 'patientListView' ? 'block' : 'none' }}>
-            <div className="view-header">
-              <div className="view-title">
-                <h2>ทะเบียนคนไข้ในการกำกับติดตาม</h2>
-                <p>รายชื่อผู้ป่วยในพื้นที่รับผิดชอบและข้อมูลการประสานติดตาม</p>
-              </div>
-            </div>
-            
-            <div className="table-container" style={{ marginTop: '1rem' }}>
-              <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.5)' }}>
-                    <th>HN</th>
-                    <th>ชื่อ - นามสกุล</th>
-                    <th>การวินิจฉัย</th>
-                    <th>โรงพยาบาล</th>
-                    <th>หมู่บ้าน</th>
-                    <th>SMI-V</th>
-                    <th>ระดับติดตาม</th>
-                    <th>ขาดนัด</th>
-                    <th>NOTE</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {patients.map(p => (
-                    <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td>{p.hn}</td>
-                      <td>{privacyShieldActive ? p.name.substring(0, 3) + '*** ****' : p.name}</td>
-                      <td>{p.dx}</td>
-                      <td>{p.hospital}</td>
-                      <td>{p.village}</td>
-                      <td><span className="badge" style={{background: p.risk === 'red' ? '#ffebee' : '#e8f5e9', color: p.risk === 'red' ? '#c62828' : '#2e7d32'}}>{p.smiV}</span></td>
-                      <td>{p.followup}</td>
-                      <td>{p.missedAppointments}</td>
-                      <td>{p.notes || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <MapView 
+            isActive={activeView === 'mapView'}
+            patients={patients}
+            clinics={CLINICS}
+            privacyShieldActive={privacyShieldActive}
+          />
+          <PatientListView 
+            isActive={activeView === 'patientListView'}
+            patients={patients}
+            privacyShieldActive={privacyShieldActive}
+          />
+          <AlertCenterView isActive={activeView === 'alertCenterView'} />
+          <StatsView isActive={activeView === 'statsView'} />
+          <AuditLogView isActive={activeView === 'auditLogView'} />
+          <SettingsView 
+            isActive={activeView === 'settingsView'} 
+            privacyShieldActive={privacyShieldActive}
+            setPrivacyShieldActive={setPrivacyShieldActive}
+          />
         </main>
       </div>
     </div>

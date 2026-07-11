@@ -1,34 +1,72 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { createClient } from '../utils/supabase/client';
 
 const AuthContext = createContext();
-
-const DEMO_USERS = [
-  { username: 'admin', password: 'admin123', name: 'ผู้ดูแลระบบ', role: 'admin' },
-  { username: 'doctor1', password: 'doc2023', name: 'คุณหมอสุข', role: 'doctor' },
-  { username: 'jhw01', password: 'jhwpass', name: 'อสม. สมหมาย', role: 'jhw' }
-];
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const supabase = createClient();
 
   useEffect(() => {
-    // Check localStorage for logged in user on mount
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    
-    // Setup demo users if not present
-    if (!localStorage.getItem('approvedUsers')) {
-      localStorage.setItem('approvedUsers', JSON.stringify(DEMO_USERS));
-    }
-    setLoading(false);
+    // 1. Initial Session Check
+    const fetchSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        await fetchProfile(session.user);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+
+    // 2. Listen to Auth State Changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await fetchProfile(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        router.push('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchProfile = async (user) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) {
+        console.error("Error fetching profile:", error);
+      }
+      
+      if (data) {
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: data.full_name || user.email,
+          role: data.role || 'jhw'
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Basic route protection
@@ -41,22 +79,21 @@ export function AuthProvider({ children }) {
     }
   }, [currentUser, loading, pathname, router]);
 
-  const login = (username, password) => {
-    const users = JSON.parse(localStorage.getItem('approvedUsers') || '[]');
-    const matched = users.find(u => u.username === username && u.password === password);
-    if (matched) {
-      const userData = { username: matched.username, name: matched.name, role: matched.role };
-      localStorage.setItem('currentUser', JSON.stringify(userData));
-      setCurrentUser(userData);
-      return true;
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) {
+      console.error("Login Error:", error);
+      return { success: false, error: error.message };
     }
-    return false;
+    return { success: true };
   };
 
-  const logout = () => {
-    localStorage.removeItem('currentUser');
-    setCurrentUser(null);
-    router.push('/login');
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
