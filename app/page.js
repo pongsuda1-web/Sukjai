@@ -36,7 +36,13 @@ export default function DashboardPage() {
         .select('*');
       
       if (clinicsError) throw clinicsError;
-      setClinics(clinicsData || []);
+      
+      const formattedClinics = (clinicsData || []).map(c => ({
+        ...c,
+        lat: c.latitude,
+        lng: c.longitude
+      }));
+      setClinics(formattedClinics);
 
       // Fetch patients
       const { data: patientsData, error: patientsError } = await supabase
