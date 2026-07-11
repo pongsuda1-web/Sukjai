@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
         .eq('id', user.id)
         .single();
         
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error("Error fetching profile:", error);
       }
       
@@ -59,6 +59,14 @@ export function AuthProvider({ children }) {
           email: user.email,
           name: data.full_name || user.email,
           role: data.role || 'jhw'
+        });
+      } else {
+        // Fallback for users created directly via dashboard without a profile record
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: user.email.split('@')[0],
+          role: 'jhw'
         });
       }
     } catch (err) {
