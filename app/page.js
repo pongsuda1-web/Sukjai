@@ -168,14 +168,33 @@ export default function DashboardPage() {
   const handleImportPatients = async (importedData) => {
     try {
       const formattedData = importedData.map(row => {
+        // Define known keys to filter out
+        const knownKeys = [
+          'HN', 'hn', 'ชื่อ-นามสกุล', 'name', 'การวินิจฉัย (ICD-10)', 'dx', 
+          'โรงพยาบาล', 'hospital', 'หมู่บ้าน', 'village', 'ระดับความเสี่ยง', 
+          'SMI-V', 'smi_v', 'ความถี่การติดตาม', 'followup_frequency', 
+          'ขาดนัด (ครั้ง)', 'missed_appointments', 'หมายเหตุ', 'notes'
+        ];
+
+        // Gather any extra columns into an array
+        let extraNotes = [];
+        Object.keys(row).forEach(key => {
+          if (!knownKeys.includes(key) && row[key] !== undefined && row[key] !== null) {
+            extraNotes.push(`${key}: ${row[key]}`);
+          }
+        });
+
         // Find hospital ID
         const clinicName = row['โรงพยาบาล'] || row['hospital'];
         const clinic = clinics.find(c => c.name === clinicName);
         
         let riskVal = 'green';
-        const riskStr = row['ระดับความเสี่ยง'] || '';
+        const riskStr = (row['ระดับความเสี่ยง'] || '').toString();
         if (riskStr.includes('แดง') || riskStr === 'red') riskVal = 'red';
         else if (riskStr.includes('เหลือง') || riskStr === 'yellow') riskVal = 'yellow';
+
+        const originalNotes = row['หมายเหตุ'] || row['notes'] || '';
+        const finalNotes = [originalNotes, ...extraNotes].filter(Boolean).join(' | ');
 
         return {
           hn: row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
@@ -187,7 +206,7 @@ export default function DashboardPage() {
           smi_v: row['SMI-V'] || row['smi_v'] || '',
           followup_frequency: row['ความถี่การติดตาม'] || row['followup_frequency'] || 'รายเดือน',
           missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
-          notes: row['หมายเหตุ'] || row['notes'] || '',
+          notes: finalNotes,
           medication_status: true,
           latitude: 13.0 + (Math.random() * 0.1), // Mock coordinates
           longitude: 100.9 + (Math.random() * 0.1)
