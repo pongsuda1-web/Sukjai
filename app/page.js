@@ -221,7 +221,12 @@ export default function DashboardPage() {
                 currentUser={currentUser}
               />
               <AlertCenterView isActive={activeView === 'alertCenterView'} patients={patients} />
-              <StatsView isActive={activeView === 'statsView'} patients={patients} />
+              <StatsView 
+                isActive={activeView === 'statsView'} 
+                patients={patients} 
+                clinics={clinics}
+                currentUser={currentUser}
+              />
               <AuditLogView isActive={activeView === 'auditLogView'} />
               <UserManagementView 
                 isActive={activeView === 'userManagementView'}

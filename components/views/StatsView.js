@@ -1,26 +1,34 @@
-"use client";
-import { Printer, UsersRound, Gauge, Percent, HeartPulse } from 'lucide-react';
+import { useState } from 'react';
+import { Printer, UsersRound, Gauge, Percent, HeartPulse, Filter } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
-export default function StatsView({ isActive, patients = [] }) {
+export default function StatsView({ isActive, patients = [], clinics = [], currentUser }) {
+  const [selectedHospital, setSelectedHospital] = useState('all');
+
   if (!isActive) return null;
 
-  const totalPatients = patients.length;
+  const isRestrictedRole = currentUser?.role === 'jhw';
   
-  const redCount = patients.filter(p => p.risk === 'red').length;
-  const yellowCount = patients.filter(p => p.risk === 'yellow').length;
-  const greenCount = patients.filter(p => p.risk === 'green').length;
+  // Filter patients based on selected hospital
+  const filteredPatients = patients.filter(p => {
+    if (selectedHospital === 'all') return true;
+    return p.hospital_id === selectedHospital || p.hospital === selectedHospital; 
+    // using hospital name string since patient schema maps hospital to clinic name
+  });
+
+  const totalPatients = filteredPatients.length;
+  const redCount = filteredPatients.filter(p => p.risk === 'red').length;
+  const yellowCount = filteredPatients.filter(p => p.risk === 'yellow').length;
+  const greenCount = filteredPatients.filter(p => p.risk === 'green').length;
 
   const redPct = totalPatients ? Math.round((redCount / totalPatients) * 100) : 0;
   
-  // Calculate missed appointments (patients with > 0 missed appointments)
-  const missedCount = patients.filter(p => p.missedAppointments > 0).length;
+  const missedCount = filteredPatients.filter(p => p.missedAppointments > 0).length;
   const missedPct = totalPatients ? Math.round((missedCount / totalPatients) * 100) : 0;
 
-  // Mock stat for Medication adherence since we don't have it fully tracked in schema yet
   const medPct = 60; 
 
   const pieData = {
@@ -34,12 +42,30 @@ export default function StatsView({ isActive, patients = [] }) {
     ],
   };
 
+  // Process DX (ICD-10) groupings for the Bar Chart
+  const dxCounts = {};
+  filteredPatients.forEach(p => {
+    // Basic grouping by finding the first word/code (e.g., "F20.0 Schizophrenia" -> "F20.0")
+    // Or just group by the entire string if they are consistent.
+    let dx = p.dx || 'ไม่ระบุ';
+    if (dxCounts[dx]) {
+      dxCounts[dx]++;
+    } else {
+      dxCounts[dx] = 1;
+    }
+  });
+
+  // Sort by highest count
+  const sortedDx = Object.keys(dxCounts).sort((a, b) => dxCounts[b] - dxCounts[a]);
+  const topDxLabels = sortedDx.slice(0, 5); // Show top 5 diseases
+  const topDxData = topDxLabels.map(label => dxCounts[label]);
+
   const barData = {
-    labels: ['Schizophrenia', 'Bipolar', 'Depression', 'อื่นๆ'],
+    labels: topDxLabels.length > 0 ? topDxLabels : ['ไม่มีข้อมูล'],
     datasets: [
       {
-        label: 'อัตราความสม่ำเสมอ (%)',
-        data: [45, 65, 80, 50],
+        label: 'จำนวนผู้ป่วย (คน)',
+        data: topDxData.length > 0 ? topDxData : [0],
         backgroundColor: '#185fa5',
       },
     ],
@@ -49,10 +75,27 @@ export default function StatsView({ isActive, patients = [] }) {
     <section className="dashboard-view active">
       <div className="view-header">
         <div className="view-title">
-          <h2>รายงานความก้าวหน้าสุขภาพจิตระดับพื้นที่ (สำหรับผู้บริหาร)</h2>
-          <p>สถิติมิติด้านผลลัพธ์และความเสี่ยงโดยรวมในพื้นที่ โดยไม่มีข้อมูลส่วนบุคคลหรือรายละเอียดการระบุตัวตน (PDPA Compliant)</p>
+          <h2>รายงานความก้าวหน้าสุขภาพจิตระดับพื้นที่</h2>
+          <p>สถิติมิติด้านผลลัพธ์และความเสี่ยงโดยรวมในพื้นที่ โดยไม่มีข้อมูลส่วนบุคคลหรือรายละเอียดการระบุตัวตน</p>
         </div>
-        <button className="btn-secondary" id="btnStatsExport"><Printer size={16} /> พิมพ์รายงานสรุป</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {!isRestrictedRole && (
+            <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0 10px' }}>
+              <Filter size={16} color="#5f5e5a" style={{ marginRight: '5px' }} />
+              <select 
+                value={selectedHospital}
+                onChange={(e) => setSelectedHospital(e.target.value)}
+                style={{ border: 'none', background: 'none', padding: '8px', outline: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                <option value="all">ดูภาพรวมทั้งหมด (ทุก รพ.)</option>
+                {clinics.map(c => (
+                  <option key={c.id} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <button className="btn-secondary" id="btnStatsExport"><Printer size={16} /> พิมพ์รายงานสรุป</button>
+        </div>
       </div>
 
       <div className="kpi-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
@@ -94,7 +137,7 @@ export default function StatsView({ isActive, patients = [] }) {
           </div>
         </div>
         <div className="chart-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-          <h3 style={{ fontSize: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px' }}>อัตราความสม่ำเสมอการรับประทานยาจำแนกตามโรค</h3>
+          <h3 style={{ fontSize: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px' }}>จำนวนผู้ป่วยจำแนกตามโรค (ICD-10)</h3>
           <div className="chart-container" style={{ height: '300px', display: 'flex', justifyContent: 'center' }}>
             <Bar data={barData} options={{ maintainAspectRatio: false }} />
           </div>
