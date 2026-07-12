@@ -73,7 +73,7 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
   };
 
   // Trend Data Logic (Mocked history + Current data)
-  const currentRedCount = riskCounts.red || 0;
+  const currentRedCount = redCount || 0;
   
   const trendData = {
     labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'เดือนนี้'],
