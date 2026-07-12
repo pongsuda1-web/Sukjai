@@ -18,7 +18,8 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
     district: '',
     province: 'น่าน',
     hospital_id: initialData?.hospital_id || '',
-    notes: initialData?.notes || ''
+    notes: initialData?.notes || '',
+    medication_status: initialData?.medicationStatus ?? true
   });
 
   const [position, setPosition] = useState(initialData ? [initialData.lat, initialData.lng] : null);
@@ -134,6 +135,13 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
                 <option value="รายเดือน">รายเดือน</option>
                 <option value="ราย 3 เดือน">ราย 3 เดือน</option>
                 <option value="ราย 6 เดือน">ราย 6 เดือน</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>การรับประทานยา *</label>
+              <select name="medication_status" required value={formData.medication_status} onChange={(e) => setFormData({...formData, medication_status: e.target.value === 'true'})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                <option value="true">สม่ำเสมอ (รับยาครบ)</option>
+                <option value="false">ขาดยา / ไม่สม่ำเสมอ</option>
               </select>
             </div>
 

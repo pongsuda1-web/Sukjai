@@ -29,7 +29,8 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
   const missedCount = filteredPatients.filter(p => p.missedAppointments > 0).length;
   const missedPct = totalPatients ? Math.round((missedCount / totalPatients) * 100) : 0;
 
-  const medPct = 60; 
+  const medCount = filteredPatients.filter(p => p.medicationStatus === true).length;
+  const medPct = totalPatients ? Math.round((medCount / totalPatients) * 100) : 0; 
 
   const pieData = {
     labels: ['ความเสี่ยงสูง (แดง)', 'ความเสี่ยงปานกลาง (เหลือง)', 'ความเสี่ยงต่ำ (เขียว)'],
@@ -94,7 +95,7 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
               </select>
             </div>
           )}
-          <button className="btn-secondary" id="btnStatsExport"><Printer size={16} /> พิมพ์รายงานสรุป</button>
+          <button className="btn-secondary" id="btnStatsExport" onClick={() => window.print()}><Printer size={16} /> พิมพ์รายงานสรุป</button>
         </div>
       </div>
 

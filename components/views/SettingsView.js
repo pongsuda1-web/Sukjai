@@ -1,7 +1,7 @@
 "use client";
-import { ShieldCheck, Settings, Send } from 'lucide-react';
+import { ShieldCheck, Settings, Send, MessageSquareWarning } from 'lucide-react';
 
-export default function SettingsView({ privacyShieldActive, setPrivacyShieldActive, isActive }) {
+export default function SettingsView({ privacyShieldActive, setPrivacyShieldActive, isActive, clinics = [], onUpdateClinic, currentUser }) {
   if (!isActive) return null;
 
   return (
@@ -100,6 +100,39 @@ export default function SettingsView({ privacyShieldActive, setPrivacyShieldActi
             </div>
           </div>
         </div>
+
+        {/* Line Notify Config */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+          <div className="settings-card line-notify-card" style={{ background: '#fff', padding: '24px', borderRadius: '8px', border: '1px solid #cbd5e1', gridColumn: '1 / -1' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', marginBottom: '20px', color: '#0f2537' }}>
+              <MessageSquareWarning size={20} /> ตั้งค่าการแจ้งเตือน Line Notify ประจำ รพ.สต.
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#5f5e5a', marginBottom: '15px' }}>
+              ระบุ Line Token ของแต่ละโรงพยาบาล เพื่อให้ระบบแจ้งเตือนเข้ากลุ่ม Line อัตโนมัติเมื่อมีการเพิ่มเคสเฝ้าระวังใหม่
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {clinics.map(clinic => (
+                <div key={clinic.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                  <div style={{ minWidth: '150px', fontWeight: 600, fontSize: '0.9rem' }}>{clinic.name}</div>
+                  <input 
+                    type="password" 
+                    placeholder="วาง Line Notify Token (ปล่อยว่างเพื่อปิดแจ้งเตือน)" 
+                    defaultValue={clinic.line_token || ''}
+                    id={`token-${clinic.id}`}
+                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                  />
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => onUpdateClinic(clinic.id, document.getElementById(`token-${clinic.id}`).value)}
+                  >
+                    บันทึก Token
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

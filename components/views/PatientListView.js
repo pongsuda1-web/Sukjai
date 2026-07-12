@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { UserPlus, Download, Search, Edit2, Trash2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import PatientForm from '../PatientForm';
 
 export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, privacyShieldActive, currentUser, isActive }) {
@@ -11,6 +12,50 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
 
   const isRestrictedRole = currentUser?.role === 'jhw' || currentUser?.role === 'social_worker';
   const forcePrivacy = isRestrictedRole ? true : privacyShieldActive;
+
+  const exportToExcel = () => {
+    // Format data for export
+    const exportData = patients.map(p => {
+      // If restricted role, hide sensitive info in export too
+      const nameToExport = forcePrivacy ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name;
+      const dxToExport = isRestrictedRole ? '---' : (p.dx || '');
+      const notesToExport = isRestrictedRole ? '---' : (p.notes || '');
+
+      return {
+        'HN': p.hn,
+        'ชื่อ-นามสกุล': nameToExport,
+        'การวินิจฉัย (ICD-10)': dxToExport,
+        'โรงพยาบาล': p.hospital,
+        'หมู่บ้าน': p.village,
+        'ระดับความเสี่ยง': p.risk === 'red' ? 'เฝ้าระวังสูง (แดง)' : p.risk === 'yellow' ? 'เฝ้าระวังปานกลาง (เหลือง)' : 'เฝ้าระวังต่ำ (เขียว)',
+        'SMI-V': p.smiV,
+        'ความถี่การติดตาม': p.followup,
+        'ขาดนัด (ครั้ง)': p.missedAppointments,
+        'หมายเหตุ': notesToExport
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Patients");
+    
+    // Auto-fit columns
+    const colWidths = [
+      { wch: 10 }, // HN
+      { wch: 25 }, // Name
+      { wch: 20 }, // DX
+      { wch: 25 }, // Hospital
+      { wch: 20 }, // Village
+      { wch: 20 }, // Risk
+      { wch: 15 }, // SMI-V
+      { wch: 15 }, // Followup
+      { wch: 15 }, // Missed
+      { wch: 30 }  // Notes
+    ];
+    worksheet['!cols'] = colWidths;
+
+    XLSX.writeFile(workbook, "Sukjai_Patient_Registry.xlsx");
+  };
 
   return (
     <section className="dashboard-view active">
@@ -44,7 +89,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             setEditingPatient(null);
             setShowModal(true);
           }} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
-          <button className="btn-secondary" id="btnExportPatients"><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
+          <button className="btn-secondary" id="btnExportPatients" onClick={exportToExcel}><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
         </div>
       </div>
       

@@ -67,7 +67,8 @@ export default function DashboardPage() {
         lat: p.latitude,
         lng: p.longitude,
         missedAppointments: p.missed_appointments,
-        notes: p.notes
+        notes: p.notes,
+        medicationStatus: p.medication_status
       }));
       
       setPatients(formattedPatients);
@@ -103,9 +104,9 @@ export default function DashboardPage() {
         const { error: pError } = await supabase
           .from('patients')
           .insert([
-            { hn: "HN-001", full_name: "นาย สมชาย รักดี", dx: "F20.0 Schizophrenia", risk: "red", smi_v: "SMI-V 1", followup_frequency: "รายสัปดาห์", village: "หมู่ 3 ต.ตะเคียนเตี้ย", hospital_id: cData[0].id, latitude: 13.0185, longitude: 100.9632, missed_appointments: 3, notes: "คนไข้อาศัยอยู่กับมารดาสูงอายุ มีพฤติกรรมก้าวร้าวเมื่อขาดยา" },
-            { hn: "HN-002", full_name: "นางสาว วิภา ใจงาม", dx: "F31.1 Bipolar Affective Disorder", risk: "yellow", smi_v: "SMI-V 4", followup_frequency: "รายเดือน", village: "หมู่ 1 ต.ตะเคียนเตี้ย", hospital_id: cData[1].id, latitude: 13.0241, longitude: 100.9514, missed_appointments: 0, notes: "สามารถเข้าสังคมและทำงานได้ปกติ มีญาติช่วยดูแลจัดการยา" },
-            { hn: "HN-003", full_name: "นาย เกรียงไกร มุ่งมั่น", dx: "F32.2 Major Depressive Disorder", risk: "green", smi_v: "นัยยะซับซ้อน", followup_frequency: "ราย 3 เดือน", village: "หมู่ 4 ต.ตะเคียนเตี้ย", hospital_id: null, latitude: 13.0092, longitude: 100.9745, missed_appointments: 1, notes: "" }
+            { hn: "HN-001", full_name: "นาย สมชาย รักดี", dx: "F20.0 Schizophrenia", risk: "red", smi_v: "SMI-V 1", followup_frequency: "รายสัปดาห์", village: "หมู่ 3 ต.ตะเคียนเตี้ย", hospital_id: cData[0].id, latitude: 13.0185, longitude: 100.9632, missed_appointments: 3, notes: "คนไข้อาศัยอยู่กับมารดาสูงอายุ มีพฤติกรรมก้าวร้าวเมื่อขาดยา", medication_status: false },
+            { hn: "HN-002", full_name: "นางสาว วิภา ใจงาม", dx: "F31.1 Bipolar Affective Disorder", risk: "yellow", smi_v: "SMI-V 4", followup_frequency: "รายเดือน", village: "หมู่ 1 ต.ตะเคียนเตี้ย", hospital_id: cData[1].id, latitude: 13.0241, longitude: 100.9514, missed_appointments: 0, notes: "สามารถเข้าสังคมและทำงานได้ปกติ มีญาติช่วยดูแลจัดการยา", medication_status: true },
+            { hn: "HN-003", full_name: "นาย เกรียงไกร มุ่งมั่น", dx: "F32.2 Major Depressive Disorder", risk: "green", smi_v: "นัยยะซับซ้อน", followup_frequency: "ราย 3 เดือน", village: "หมู่ 4 ต.ตะเคียนเตี้ย", hospital_id: null, latitude: 13.0092, longitude: 100.9745, missed_appointments: 1, notes: "", medication_status: true }
           ]);
         if (pError) throw pError;
       }
@@ -119,11 +120,28 @@ export default function DashboardPage() {
 
   const handleAddPatient = async (patientData) => {
     try {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('patients')
-        .insert([patientData]);
+        .insert([patientData])
+        .select();
 
       if (error) throw error;
+      
+      // Line Notify logic
+      if (patientData.risk === 'red' || patientData.missed_appointments > 0) {
+        const clinic = clinics.find(c => c.id === patientData.hospital_id);
+        if (clinic && clinic.line_token) {
+          const riskStr = patientData.risk === 'red' ? '🔴 เฝ้าระวังสูง (แดง)' : 'เฝ้าระวัง (ขาดนัด)';
+          const message = `\n🚨 แจ้งเตือนเคสใหม่ (${clinic.name})\nระดับความเสี่ยง: ${riskStr}\nพิกัด: ${patientData.village}\n*กรุณาล็อกอินเข้าสู่ระบบ Sukjai เพื่อดูชื่อและรายละเอียด*`;
+          
+          await fetch('/api/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: clinic.line_token, message })
+          }).catch(console.error); // Do not block if notify fails
+        }
+      }
+
       alert('บันทึกข้อมูลผู้ป่วยสำเร็จ!');
       fetchData(); // refresh data
     } catch (err) {
@@ -134,6 +152,13 @@ export default function DashboardPage() {
 
   const handleEditPatient = async (id, patientData) => {
     try {
+      // Map back to schema if needed, but form should already submit schema keys if mapped correctly,
+      // wait, PatientForm returns formData directly. We should map medicationStatus to medication_status.
+      if (patientData.medicationStatus !== undefined) {
+        patientData.medication_status = patientData.medicationStatus;
+        delete patientData.medicationStatus;
+      }
+
       const { error } = await supabase
         .from('patients')
         .update(patientData)
@@ -177,6 +202,22 @@ export default function DashboardPage() {
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาดในการอัปเดตสิทธิ์: ' + err.message);
+    }
+  };
+
+  const handleUpdateClinicLineToken = async (clinicId, token) => {
+    try {
+      const { error } = await supabase
+        .from('clinics')
+        .update({ line_token: token })
+        .eq('id', clinicId);
+
+      if (error) throw error;
+      alert('อัปเดต Line Token สำเร็จ!');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการอัปเดต Token: ' + err.message);
     }
   };
 
@@ -238,6 +279,9 @@ export default function DashboardPage() {
                 isActive={activeView === 'settingsView'} 
                 privacyShieldActive={privacyShieldActive}
                 setPrivacyShieldActive={setPrivacyShieldActive}
+                clinics={clinics}
+                currentUser={currentUser}
+                onUpdateClinic={handleUpdateClinicLineToken}
               />
             </>
           )}
