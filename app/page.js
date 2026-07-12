@@ -15,7 +15,7 @@ import { createClient } from '../utils/supabase/client';
 export default function DashboardPage() {
   const { currentUser } = useAuth();
   const [privacyShieldActive, setPrivacyShieldActive] = useState(true);
-  const [activeView, setActiveView] = useState('mapView');
+  const [activeView, setActiveView] = useState('statsView');
   
   const [patients, setPatients] = useState([]);
   const [clinics, setClinics] = useState([]);
@@ -218,6 +218,7 @@ export default function DashboardPage() {
                 onEditPatient={handleEditPatient}
                 onDeletePatient={handleDeletePatient}
                 privacyShieldActive={privacyShieldActive}
+                currentUser={currentUser}
               />
               <AlertCenterView isActive={activeView === 'alertCenterView'} patients={patients} />
               <StatsView isActive={activeView === 'statsView'} patients={patients} />

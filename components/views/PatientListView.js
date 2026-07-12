@@ -3,11 +3,14 @@ import { useState } from 'react';
 import { UserPlus, Download, Search, Edit2, Trash2 } from 'lucide-react';
 import PatientForm from '../PatientForm';
 
-export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, privacyShieldActive, isActive }) {
+export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, privacyShieldActive, currentUser, isActive }) {
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
 
   if (!isActive) return null;
+
+  const isRestrictedRole = currentUser?.role === 'jhw' || currentUser?.role === 'social_worker';
+  const forcePrivacy = isRestrictedRole ? true : privacyShieldActive;
 
   return (
     <section className="dashboard-view active">
@@ -15,6 +18,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
         <PatientForm 
           clinics={clinics}
           initialData={editingPatient}
+          currentUser={currentUser}
           onClose={() => {
             setShowModal(false);
             setEditingPatient(null);
@@ -72,13 +76,13 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             <tr style={{ background: 'rgba(255,255,255,0.5)' }}>
               <th>HN</th>
               <th>ชื่อ - นามสกุล</th>
-              <th>การวินิจฉัย</th>
+              {!isRestrictedRole && <th>การวินิจฉัย (ICD-10)</th>}
               <th>โรงพยาบาล</th>
               <th>หมู่บ้าน</th>
               <th>SMI-V</th>
               <th>ระดับติดตาม</th>
               <th>ขาดนัด</th>
-              <th>NOTE</th>
+              {!isRestrictedRole && <th>NOTE</th>}
               <th>จัดการ</th>
             </tr>
           </thead>
@@ -86,8 +90,8 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             {patients.map(p => (
               <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td>{p.hn}</td>
-                <td>{privacyShieldActive ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name}</td>
-                <td>{p.dx}</td>
+                <td>{forcePrivacy ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name}</td>
+                {!isRestrictedRole && <td>{p.dx}</td>}
                 <td>{p.hospital}</td>
                 <td>{p.village}</td>
                 <td>
@@ -97,7 +101,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
                 </td>
                 <td>{p.followup}</td>
                 <td>{p.missedAppointments}</td>
-                <td>{p.notes || '-'}</td>
+                {!isRestrictedRole && <td>{p.notes || '-'}</td>}
                 <td style={{ whiteSpace: 'nowrap' }}>
                   <button 
                     onClick={() => {

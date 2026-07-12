@@ -5,7 +5,7 @@ import { X, Search, MapPin } from 'lucide-react';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
-export default function PatientForm({ onClose, onSave, clinics, initialData }) {
+export default function PatientForm({ onClose, onSave, clinics, initialData, currentUser }) {
   const [formData, setFormData] = useState({
     hn: initialData?.hn || '',
     full_name: initialData?.name || '',
@@ -23,6 +23,8 @@ export default function PatientForm({ onClose, onSave, clinics, initialData }) {
 
   const [position, setPosition] = useState(initialData ? [initialData.lat, initialData.lng] : null);
   const [loadingGeocode, setLoadingGeocode] = useState(false);
+  
+  const isRestrictedRole = currentUser?.role === 'jhw' || currentUser?.role === 'social_worker';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -106,10 +108,12 @@ export default function PatientForm({ onClose, onSave, clinics, initialData }) {
               <input type="text" name="full_name" required value={formData.full_name} onChange={handleChange} className="form-input" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
             </div>
             
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>การวินิจฉัย (ICD-10) *</label>
-              <input type="text" name="dx" required value={formData.dx} onChange={handleChange} placeholder="เช่น F20.0" className="form-input" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
-            </div>
+            {!isRestrictedRole && (
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>การวินิจฉัย (ICD-10) *</label>
+                <input type="text" name="dx" required={!isRestrictedRole} value={formData.dx} onChange={handleChange} placeholder="เช่น F20.0" className="form-input" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>ระดับความเสี่ยง *</label>
               <select name="risk" required value={formData.risk} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
@@ -172,10 +176,12 @@ export default function PatientForm({ onClose, onSave, clinics, initialData }) {
             )}
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>หมายเหตุเพิ่มเติม</label>
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}></textarea>
-          </div>
+          {!isRestrictedRole && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>หมายเหตุเพิ่มเติม</label>
+              <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}></textarea>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: '6px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}>
