@@ -1,10 +1,11 @@
 "use client";
 import { ShieldAlert } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '../../utils/supabase/client';
 
 export default function AuditLogView({ isActive }) {
   const [logs, setLogs] = useState([]);
+  const supabase = createClient();
 
   useEffect(() => {
     async function fetchLogs() {
