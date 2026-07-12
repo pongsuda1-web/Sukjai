@@ -7,6 +7,7 @@ import PatientForm from '../PatientForm';
 export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, onImportPatients, privacyShieldActive, currentUser, isActive }) {
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
+  const fileInputRef = useRef(null);
 
   if (!isActive) return null;
 
@@ -56,8 +57,6 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
 
     XLSX.writeFile(workbook, "Sukjai_Patient_Registry.xlsx");
   };
-
-  const fileInputRef = useRef(null);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
