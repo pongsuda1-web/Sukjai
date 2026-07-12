@@ -711,6 +711,15 @@ body {
     color: var(--text-main);
 }
 
+.btn-icon.edit-btn:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-icon.delete-btn:hover {
+    background-color: var(--danger-light);
+    color: var(--danger);
     border-color: var(--danger);
 }
 
