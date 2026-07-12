@@ -68,8 +68,21 @@ export default function DashboardPage() {
         lng: p.longitude,
         missedAppointments: p.missed_appointments,
         notes: p.notes,
-        medicationStatus: p.medication_status
-      }));
+        medicationStatus: p.medication_status,
+        last_visit_date: p.last_visit_date || new Date().toISOString().split('T')[0]
+      })).map(p => {
+        // Calculate next_visit_date
+        const lastVisit = new Date(p.last_visit_date);
+        let daysToAdd = 30; // default to monthly
+        if (p.followup === 'รายสัปดาห์') daysToAdd = 7;
+        else if (p.followup === 'รายเดือน') daysToAdd = 30;
+        else if (p.followup === 'ราย 3 เดือน') daysToAdd = 90;
+        else if (p.followup === 'ราย 6 เดือน') daysToAdd = 180;
+        
+        const nextVisit = new Date(lastVisit);
+        nextVisit.setDate(nextVisit.getDate() + daysToAdd);
+        return { ...p, next_visit_date: nextVisit.toISOString().split('T')[0] };
+      });
       
       setPatients(formattedPatients);
 
@@ -147,6 +160,48 @@ export default function DashboardPage() {
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
+    }
+  };
+
+  const handleImportPatients = async (importedData) => {
+    try {
+      const formattedData = importedData.map(row => {
+        // Find hospital ID
+        const clinicName = row['โรงพยาบาล'] || row['hospital'];
+        const clinic = clinics.find(c => c.name === clinicName);
+        
+        let riskVal = 'green';
+        const riskStr = row['ระดับความเสี่ยง'] || '';
+        if (riskStr.includes('แดง') || riskStr === 'red') riskVal = 'red';
+        else if (riskStr.includes('เหลือง') || riskStr === 'yellow') riskVal = 'yellow';
+
+        return {
+          hn: row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
+          full_name: row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
+          dx: row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
+          hospital_id: clinic ? clinic.id : null,
+          village: row['หมู่บ้าน'] || row['village'] || '',
+          risk: riskVal,
+          smi_v: row['SMI-V'] || row['smi_v'] || '',
+          followup_frequency: row['ความถี่การติดตาม'] || row['followup_frequency'] || 'รายเดือน',
+          missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
+          notes: row['หมายเหตุ'] || row['notes'] || '',
+          medication_status: true,
+          latitude: 13.0 + (Math.random() * 0.1), // Mock coordinates
+          longitude: 100.9 + (Math.random() * 0.1)
+        };
+      });
+
+      const { error } = await supabase
+        .from('patients')
+        .insert(formattedData);
+
+      if (error) throw error;
+      alert(`นำเข้าข้อมูลผู้ป่วยสำเร็จ ${formattedData.length} รายการ!`);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล: ' + err.message);
     }
   };
 
@@ -258,8 +313,10 @@ export default function DashboardPage() {
                 onAddPatient={handleAddPatient}
                 onEditPatient={handleEditPatient}
                 onDeletePatient={handleDeletePatient}
+                onImportPatients={handleImportPatients}
                 privacyShieldActive={privacyShieldActive}
                 currentUser={currentUser}
+                isActive={activeView === 'patientListView'} 
               />
               <AlertCenterView isActive={activeView === 'alertCenterView'} patients={patients} />
               <StatsView 

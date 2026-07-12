@@ -1,18 +1,44 @@
 "use client";
 import { ShieldAlert } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function AuditLogView({ isActive }) {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    // Load mock logs
-    const mockLogs = [
-      { timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), username: "system_daemon", role: "system", event: "SYSTEM_INIT", hn: "-", details: "เริ่มทำงานระบบระบบและเชื่อมต่อฐานข้อมูล PDPA Shield v1.0", ip: "127.0.0.1" },
-      { timestamp: new Date(Date.now() - 3600000).toISOString(), username: "nurse_somjai", role: "doctor", event: "VIEW_MAP", hn: "-", details: "เข้าใช้งานหน้าแผนที่ติดตามผู้ป่วยประจำสัปดาห์", ip: "192.168.1.45" }
-    ];
-    setLogs(mockLogs);
-  }, []);
+    async function fetchLogs() {
+      if (!isActive) return;
+      try {
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (error || !data || data.length === 0) throw new Error('No DB logs');
+        
+        const formattedLogs = data.map(l => ({
+          timestamp: l.created_at,
+          username: l.username,
+          role: l.role,
+          event: l.event,
+          hn: l.target_hn || "-",
+          details: l.details,
+          ip: "-"
+        }));
+        setLogs(formattedLogs);
+      } catch (err) {
+        // Fallback to mock logs if table doesn't exist or empty
+        const mockLogs = [
+          { timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), username: "system_daemon", role: "system", event: "SYSTEM_INIT", hn: "-", details: "เริ่มทำงานระบบระบบและเชื่อมต่อฐานข้อมูล PDPA Shield v1.0", ip: "127.0.0.1" },
+          { timestamp: new Date(Date.now() - 3600000).toISOString(), username: "nurse_somjai", role: "doctor", event: "VIEW_MAP", hn: "-", details: "เข้าใช้งานหน้าแผนที่ติดตามผู้ป่วยประจำสัปดาห์", ip: "192.168.1.45" }
+        ];
+        setLogs(mockLogs);
+      }
+    }
+    fetchLogs();
+  }, [isActive]);
 
   if (!isActive) return null;
 

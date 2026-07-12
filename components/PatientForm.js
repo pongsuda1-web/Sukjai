@@ -19,7 +19,8 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
     province: 'น่าน',
     hospital_id: initialData?.hospital_id || '',
     notes: initialData?.notes || '',
-    medication_status: initialData?.medicationStatus ?? true
+    medication_status: initialData?.medicationStatus ?? true,
+    last_visit_date: initialData?.last_visit_date || new Date().toISOString().split('T')[0]
   });
 
   const [position, setPosition] = useState(initialData ? [initialData.lat, initialData.lng] : null);
@@ -143,6 +144,10 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
                 <option value="true">สม่ำเสมอ (รับยาครบ)</option>
                 <option value="false">ขาดยา / ไม่สม่ำเสมอ</option>
               </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>วันที่เยี่ยมบ้านล่าสุด</label>
+              <input type="date" name="last_visit_date" value={formData.last_visit_date} onChange={handleChange} className="form-input" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>

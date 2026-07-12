@@ -1,10 +1,10 @@
 "use client";
-import { useState } from 'react';
-import { UserPlus, Download, Search, Edit2, Trash2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { UserPlus, Download, Search, Edit2, Trash2, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import PatientForm from '../PatientForm';
 
-export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, privacyShieldActive, currentUser, isActive }) {
+export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, onImportPatients, privacyShieldActive, currentUser, isActive }) {
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
 
@@ -57,6 +57,29 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
     XLSX.writeFile(workbook, "Sukjai_Patient_Registry.xlsx");
   };
 
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: 'binary' });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws);
+      
+      if (data.length > 0 && onImportPatients) {
+        onImportPatients(data);
+      }
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
     <section className="dashboard-view active">
       {showModal && (
@@ -89,6 +112,26 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             setEditingPatient(null);
             setShowModal(true);
           }} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
+          
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.role === 'doctor') && (
+            <>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                onChange={handleFileUpload}
+              />
+              <button 
+                className="btn-secondary" 
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={16} /> นำเข้าข้อมูล (Excel)
+              </button>
+            </>
+          )}
+
           <button className="btn-secondary" id="btnExportPatients" onClick={exportToExcel}><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
         </div>
       </div>

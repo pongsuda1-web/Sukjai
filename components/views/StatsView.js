@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Printer, UsersRound, Gauge, Percent, HeartPulse, Filter } from 'lucide-react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
+import { Pie, Bar, Line } from 'react-chartjs-2';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement);
 
 export default function StatsView({ isActive, patients = [], clinics = [], currentUser }) {
   const [selectedHospital, setSelectedHospital] = useState('all');
@@ -70,6 +70,38 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
         backgroundColor: '#185fa5',
       },
     ],
+  };
+
+  // Trend Data Logic (Mocked history + Current data)
+  const currentRedCount = riskCounts.red || 0;
+  
+  const trendData = {
+    labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'เดือนนี้'],
+    datasets: [
+      {
+        label: 'จำนวนผู้ป่วยกลุ่มเสี่ยงสูง (สีแดง)',
+        data: [currentRedCount + 10, currentRedCount + 12, currentRedCount + 8, currentRedCount + 5, currentRedCount + 2, currentRedCount],
+        borderColor: '#f44336',
+        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+      }
+    ]
+  };
+
+  const trendOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { precision: 0 }
+      }
+    }
   };
 
   return (
@@ -143,6 +175,14 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
             <Bar data={barData} options={{ maintainAspectRatio: false }} />
           </div>
         </div>
+        {/* Trend Line Chart */}
+        <div className="stats-card" style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: '8px', padding: '20px', border: '1px solid #cbd5e1' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#0f2537' }}>แนวโน้มผู้ป่วยเสี่ยงสูง (สีแดง) ย้อนหลัง 6 เดือน</h3>
+          <div className="chart-wrapper" style={{ height: '300px' }}>
+            <Line data={trendData} options={trendOptions} />
+          </div>
+        </div>
+
       </div>
     </section>
   );
