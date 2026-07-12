@@ -165,6 +165,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
               <th>ชื่อ - นามสกุล</th>
               {!isRestrictedRole && <th>การวินิจฉัย (ICD-10)</th>}
               <th>โรงพยาบาล</th>
+              <th>รพ.สต.</th>
               <th>หมู่บ้าน</th>
               <th>SMI-V</th>
               <th>ระดับติดตาม</th>
@@ -179,8 +180,9 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
                 <td>{p.hn}</td>
                 <td>{forcePrivacy ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name}</td>
                 {!isRestrictedRole && <td>{p.dx}</td>}
-                <td>{p.hospital}</td>
-                <td>{p.village}</td>
+                  <td style={{ fontSize: '0.9rem' }}>{p.hospital}</td>
+                  <td style={{ fontSize: '0.9rem', color: '#0277bd' }}>{p.pcu}</td>
+                  <td style={{ fontSize: '0.9rem' }}>{p.village}</td>
                 <td>
                   <span className="badge" style={{background: p.risk === 'red' ? '#ffebee' : '#e8f5e9', color: p.risk === 'red' ? '#c62828' : '#2e7d32'}}>
                     {p.smiV}

@@ -18,6 +18,7 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
     district: '',
     province: 'น่าน',
     hospital_id: initialData?.hospital_id || '',
+    pcu_id: initialData?.pcu_id || '',
     notes: initialData?.notes || '',
     medication_status: initialData?.medicationStatus ?? true,
     last_visit_date: initialData?.last_visit_date || new Date().toISOString().split('T')[0]
@@ -169,14 +170,25 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
               <input type="date" name="last_visit_date" value={formData.last_visit_date} onChange={handleChange} className="form-input" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
             </div>
 
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>สถานพยาบาลที่รับผิดชอบ</label>
-              <select name="hospital_id" value={formData.hospital_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
-                <option value="">-- ไม่ระบุ --</option>
-                {clinics.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>โรงพยาบาลหลัก (รพ.)</label>
+                <select name="hospital_id" value={formData.hospital_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">-- ไม่ระบุ --</option>
+                  {clinics.filter(c => !c.type || c.type === 'hospital').map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>รพ.สต. ที่ดูแล</label>
+                <select name="pcu_id" value={formData.pcu_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">-- ไม่ระบุ --</option>
+                  {clinics.filter(c => c.type === 'pcu').map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

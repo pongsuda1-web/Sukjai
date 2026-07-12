@@ -49,14 +49,15 @@ export default function DashboardPage() {
       setClinics(formattedClinics);
 
       // Fetch patients
-      const { data: patientsData, error: patientsError } = await supabase
+      const { data, error } = await supabase
         .from('patients')
-        .select(`*, clinics(name)`);
+        .select(`*, hospital:hospital_id(name), pcu:pcu_id(name)`)
+        .order('created_at', { ascending: false });
         
-      if (patientsError) throw patientsError;
+      if (error) throw error;
       
       // Map database schema to UI format
-      const formattedPatients = (patientsData || []).map(p => ({
+      const formattedPatients = (data || []).map(p => ({
         id: p.id,
         hn: p.hn,
         name: p.full_name,
@@ -65,7 +66,8 @@ export default function DashboardPage() {
         smiV: p.smi_v,
         followup: p.followup_frequency,
         village: p.village,
-        hospital: p.clinics?.name || '-',
+        hospital: p.hospital?.name || '-',
+        pcu: p.pcu?.name || '-',
         lat: p.latitude,
         lng: p.longitude,
         missedAppointments: p.missed_appointments,
@@ -171,7 +173,7 @@ export default function DashboardPage() {
         // Define known keys to filter out
         const knownKeys = [
           'HN', 'hn', 'ชื่อ-นามสกุล', 'name', 'การวินิจฉัย (ICD-10)', 'dx', 
-          'โรงพยาบาล', 'hospital', 'หมู่บ้าน', 'village', 'ระดับความเสี่ยง', 
+          'โรงพยาบาล', 'hospital', 'รพ.สต.', 'pcu', 'หมู่บ้าน', 'village', 'ระดับความเสี่ยง', 
           'SMI-V', 'smi_v', 'ความถี่การติดตาม', 'followup_frequency', 
           'ขาดนัด (ครั้ง)', 'missed_appointments', 'หมายเหตุ', 'notes',
           'บ้านเลขที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'ละติจูด', 'ลองจิจูด', 'latitude', 'longitude'
@@ -185,9 +187,12 @@ export default function DashboardPage() {
           }
         });
 
-        // Find hospital ID
+        // Find hospital ID and PCU ID
         const clinicName = row['โรงพยาบาล'] || row['hospital'];
-        const clinic = clinics.find(c => c.name === clinicName);
+        const clinic = clinics.find(c => c.name === clinicName && (!c.type || c.type === 'hospital'));
+        
+        const pcuName = row['รพ.สต.'] || row['pcu'];
+        const pcu = clinics.find(c => c.name === pcuName && c.type === 'pcu');
         
         let riskVal = 'green';
         const riskStr = (row['ระดับความเสี่ยง'] || '').toString();
@@ -219,6 +224,7 @@ export default function DashboardPage() {
           full_name: row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
           dx: row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
           hospital_id: clinic ? clinic.id : null,
+          pcu_id: pcu ? pcu.id : null,
           village: fullVillage,
           risk: riskVal,
           smi_v: row['SMI-V'] || row['smi_v'] || '',
