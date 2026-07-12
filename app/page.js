@@ -173,7 +173,8 @@ export default function DashboardPage() {
           'HN', 'hn', 'ชื่อ-นามสกุล', 'name', 'การวินิจฉัย (ICD-10)', 'dx', 
           'โรงพยาบาล', 'hospital', 'หมู่บ้าน', 'village', 'ระดับความเสี่ยง', 
           'SMI-V', 'smi_v', 'ความถี่การติดตาม', 'followup_frequency', 
-          'ขาดนัด (ครั้ง)', 'missed_appointments', 'หมายเหตุ', 'notes'
+          'ขาดนัด (ครั้ง)', 'missed_appointments', 'หมายเหตุ', 'notes',
+          'บ้านเลขที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'ละติจูด', 'ลองจิจูด', 'latitude', 'longitude'
         ];
 
         // Gather any extra columns into an array
@@ -196,20 +197,37 @@ export default function DashboardPage() {
         const originalNotes = row['หมายเหตุ'] || row['notes'] || '';
         const finalNotes = [originalNotes, ...extraNotes].filter(Boolean).join(' | ');
 
+        // Address Builder
+        let fullVillage = row['หมู่บ้าน'] || row['village'] || '';
+        const houseNo = row['บ้านเลขที่'];
+        const subdistrict = row['ตำบล'];
+        const district = row['อำเภอ'];
+        const province = row['จังหวัด'];
+        
+        if (houseNo || subdistrict || district) {
+          fullVillage = `${houseNo ? houseNo + ' ' : ''}${fullVillage ? 'ม.' + fullVillage + ' ' : ''}${subdistrict ? 'ต.' + subdistrict + ' ' : ''}${district ? 'อ.' + district + ' ' : ''}${province ? 'จ.' + province : ''}`.trim();
+        }
+
+        // Coordinates
+        const lat = row['ละติจูด'] || row['latitude'];
+        const lng = row['ลองจิจูด'] || row['longitude'];
+        const finalLat = lat ? parseFloat(lat) : 18.7 + (Math.random() * 0.2);
+        const finalLng = lng ? parseFloat(lng) : 100.7 + (Math.random() * 0.2);
+
         return {
           hn: row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
           full_name: row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
           dx: row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
           hospital_id: clinic ? clinic.id : null,
-          village: row['หมู่บ้าน'] || row['village'] || '',
+          village: fullVillage,
           risk: riskVal,
           smi_v: row['SMI-V'] || row['smi_v'] || '',
           followup_frequency: row['ความถี่การติดตาม'] || row['followup_frequency'] || 'รายเดือน',
           missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
           notes: finalNotes,
           medication_status: true,
-          latitude: 18.7 + (Math.random() * 0.2), // Mock coordinates for Nan
-          longitude: 100.7 + (Math.random() * 0.2)
+          latitude: finalLat,
+          longitude: finalLng
         };
       });
 
