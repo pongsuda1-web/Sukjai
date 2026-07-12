@@ -35,20 +35,39 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
   const handleSearchAddress = async () => {
     setLoadingGeocode(true);
     try {
-      const query = `${formData.address} ${formData.subdistrict} ${formData.district} ${formData.province}`.trim();
-      if (!query) return;
+      // 1. ลองค้นหาแบบละเอียดที่สุดก่อน (รวมบ้านเลขที่)
+      const fullQuery = `${formData.address} ${formData.subdistrict} ${formData.district} ${formData.province}`.trim();
+      if (!fullQuery) return;
 
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
-      const data = await res.json();
+      let res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullQuery)}&format=json&limit=1`);
+      let data = await res.json();
+
+      // 2. ถ้าไม่พบแบบละเอียด ให้ลองค้นหาแค่ ตำบล อำเภอ จังหวัด (ตัดบ้านเลขที่/หมู่บ้านออก เพราะแผนที่อาจจะไม่รู้จัก)
+      if (!data || data.length === 0) {
+        const fallbackQuery = `${formData.subdistrict} ${formData.district} ${formData.province}`.trim();
+        if (fallbackQuery) {
+          res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=1`);
+          data = await res.json();
+        }
+      }
+      
+      // 3. ถ้ายังไม่พบอีก ให้ลองค้นหาแค่ อำเภอ จังหวัด
+      if (!data || data.length === 0) {
+        const fallbackQuery2 = `${formData.district} ${formData.province}`.trim();
+        if (fallbackQuery2) {
+          res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery2)}&format=json&limit=1`);
+          data = await res.json();
+        }
+      }
 
       if (data && data.length > 0) {
         setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
       } else {
-        alert("ไม่พบตำแหน่งจากที่อยู่ดังกล่าว กรุณาปรับแก้ที่อยู่ หรือจิ้มเลือกจุดบนแผนที่โดยตรง");
+        alert("ระบบค้นหาพิกัดไม่พบที่อยู่ดังกล่าว (อาจจะละเอียดเกินไป) \n\nกรุณาเลื่อนแผนที่ด้านล่าง แล้วใช้ 'นิ้วจิ้ม' หรือ 'เมาส์คลิก' เพื่อปักหมุดที่ตั้งบ้านบนแผนที่ด้วยตัวเองได้เลยครับ");
       }
     } catch (err) {
       console.error(err);
-      alert("เกิดข้อผิดพลาดในการค้นหาตำแหน่ง");
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบแผนที่ กรุณาใช้วิธีคลิกเลือกจุดบนแผนที่โดยตรง");
     } finally {
       setLoadingGeocode(false);
     }
