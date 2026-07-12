@@ -5,8 +5,18 @@ import { Providers } from "../components/Providers";
 const inter = Inter({ subsets: ["latin", "thai"] });
 
 export const metadata = {
-  title: "MindMap — ระบบสารสนเทศการกำกับติดตามและแผนที่คนไข้จิตเวชในชุมชน",
-  description: "ระบบติดตามและแผนที่คนไข้จิตเวชชุมชน น่านสุขใจ",
+  title: "Nan Sukjai - น่านสุขใจ",
+  description: "ระบบติดตามการรักษาและดูแลสุขภาพแบบองค์รวม สำหรับ อสม. แพทย์ และพยาบาลในจังหวัดน่าน",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "น่านสุขใจ",
+  },
+  icons: {
+    apple: "/icon-192.png",
+  },
+  themeColor: "#0277bd"
 };
 
 export default function RootLayout({ children }) {
