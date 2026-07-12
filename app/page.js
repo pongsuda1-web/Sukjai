@@ -219,7 +219,7 @@ export default function DashboardPage() {
                 onDeletePatient={handleDeletePatient}
                 privacyShieldActive={privacyShieldActive}
               />
-              <AlertCenterView isActive={activeView === 'alertCenterView'} />
+              <AlertCenterView isActive={activeView === 'alertCenterView'} patients={patients} />
               <StatsView isActive={activeView === 'statsView'} patients={patients} />
               <AuditLogView isActive={activeView === 'auditLogView'} />
               <UserManagementView 
