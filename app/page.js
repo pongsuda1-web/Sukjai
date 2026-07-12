@@ -10,6 +10,7 @@ import StatsView from '../components/views/StatsView';
 import AuditLogView from '../components/views/AuditLogView';
 import SettingsView from '../components/views/SettingsView';
 import UserManagementView from '../components/views/UserManagementView';
+import SurveyView from '../components/views/SurveyView';
 import { createClient } from '../utils/supabase/client';
 
 export default function DashboardPage() {
@@ -276,6 +277,20 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSaveSurvey = async (surveyData) => {
+    try {
+      const { error } = await supabase
+        .from('research_surveys')
+        .insert([surveyData]);
+        
+      if (error) throw error;
+      console.log('Survey saved successfully');
+    } catch (err) {
+      console.error('Failed to save survey:', err);
+      alert('เกิดข้อผิดพลาดในการส่งแบบประเมิน โปรดลองอีกครั้ง');
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -339,6 +354,10 @@ export default function DashboardPage() {
                 clinics={clinics}
                 currentUser={currentUser}
                 onUpdateClinic={handleUpdateClinicLineToken}
+              />
+              <SurveyView 
+                isActive={activeView === 'surveyView'}
+                onSubmitSurvey={handleSaveSurvey}
               />
             </>
           )}

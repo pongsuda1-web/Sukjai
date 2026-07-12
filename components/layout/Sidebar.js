@@ -1,5 +1,5 @@
 "use client";
-import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck, UserCog } from 'lucide-react';
+import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck, UserCog, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeView, setActiveView }) {
@@ -53,6 +53,11 @@ export default function Sidebar({ activeView, setActiveView }) {
           <li>
             <a href="#" className={`nav-item ${activeView === 'settingsView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('settingsView'); }}>
               <ShieldCheck size={18}/> <span>สิทธิ์คนไข้ & ตั้งค่า</span>
+            </a>
+          </li>
+          <li style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+            <a href="#" className={`nav-item ${activeView === 'surveyView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('surveyView'); }} style={{ color: '#bae6fd' }}>
+              <ClipboardList size={18}/> <span>ทำแบบประเมิน (วิจัย)</span>
             </a>
           </li>
         </ul>
