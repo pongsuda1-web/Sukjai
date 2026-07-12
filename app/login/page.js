@@ -82,6 +82,10 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+          
+          <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.9rem", color: "#5f5e5a" }}>
+            ยังไม่มีบัญชีผู้ใช้งาน? <a href="/register" style={{ color: "#0277bd", textDecoration: "none", fontWeight: 600 }}>สมัครสมาชิกที่นี่</a>
+          </div>
         </form>
       </div>
     </div>

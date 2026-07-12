@@ -100,12 +100,34 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
+  const register = async (email, password, fullName) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    
+    if (error) {
+      console.error("Register Error:", error);
+      return { success: false, error: error.message };
+    }
+    
+    // Create profile if successful
+    if (data?.user) {
+      const { error: profileError } = await supabase.from('profiles').insert([
+        { id: data.user.id, full_name: fullName, username: email, role: 'jhw', is_approved: false }
+      ]);
+      if (profileError) console.error("Error creating profile:", profileError);
+    }
+    
+    return { success: true };
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
