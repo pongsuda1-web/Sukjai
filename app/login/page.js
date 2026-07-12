@@ -7,7 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithLine } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +75,48 @@ export default function LoginPage() {
             fontWeight: 600
           }}>
             {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }}></div>
+            <span style={{ padding: '0 10px', color: '#888', fontSize: '0.85rem' }}>หรือ</span>
+            <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }}></div>
+          </div>
+          
+          <button 
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              setLoading(true);
+              const result = await loginWithLine();
+              if (!result.success) {
+                setError(result.error || 'ไม่สามารถเข้าสู่ระบบด้วย LINE ได้');
+                setLoading(false);
+              }
+            }}
+            style={{
+              background: loading ? "#a5d6a7" : "#00B900",
+              color: "#fff",
+              border: "none",
+              padding: "0.6rem 1rem",
+              width: "100%",
+              borderRadius: "4px",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px"
+            }}
+          >
+            {loading ? "กำลังเชื่อมต่อ..." : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.6 10.3C23.6 4.6 18.3 0 11.8 0C5.3 0 0 4.6 0 10.3C0 15.1 4 19.3 9.4 20.3C9.7 20.4 10.5 20.6 10.7 21C10.8 21.2 10.7 22.1 10.7 22.3C10.6 22.9 10.2 24 10.2 24C10.2 24 11 24 11.9 23.4C12.9 22.8 17.5 20.2 19.9 17.8C22.2 15.5 23.6 13 23.6 10.3Z" fill="white"/>
+                </svg>
+                เข้าสู่ระบบด้วยบัญชี LINE
+              </>
+            )}
           </button>
           
           {error && (

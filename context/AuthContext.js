@@ -57,15 +57,24 @@ export function AuthProvider({ children }) {
         setCurrentUser({
           id: user.id,
           email: user.email,
-          name: data.full_name || user.email,
+          name: data.full_name || user.email || 'LINE User',
           role: data.role || 'jhw'
         });
       } else {
-        // Fallback for users created directly via dashboard without a profile record
+        // Auto-create profile for OAuth users (e.g. LINE) if missing
+        const newProfile = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'LINE User',
+          username: user.email || user.id,
+          role: 'jhw',
+          is_approved: false
+        };
+        await supabase.from('profiles').insert([newProfile]);
+        
         setCurrentUser({
           id: user.id,
           email: user.email,
-          name: user.email.split('@')[0],
+          name: newProfile.full_name,
           role: 'jhw'
         });
       }
@@ -122,12 +131,29 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
+  const loginWithLine = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'line',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      }
+    });
+    
+    if (error) {
+      console.error("LINE Login Error:", error);
+      return { success: false, error: error.message };
+    }
+    // Note: Profile creation for LINE users will happen automatically via a Supabase trigger,
+    // or we can handle it in the fetchSession if the profile doesn't exist.
+    return { success: true };
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, register, loginWithLine, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
