@@ -88,9 +88,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Basic route protection
     if (!loading) {
-      if (!currentUser && pathname !== '/login') {
+      if (!currentUser && pathname !== '/login' && pathname !== '/register') {
         router.push('/login');
-      } else if (currentUser && pathname === '/login') {
+      } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
         router.push('/');
       }
     }
