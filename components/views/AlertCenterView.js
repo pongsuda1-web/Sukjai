@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Clock, CheckCircle, CheckSquare } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle, CheckSquare, Activity } from 'lucide-react';
 
 export default function AlertCenterView({ isActive, patients = [] }) {
   const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
