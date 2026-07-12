@@ -11,6 +11,7 @@ import AuditLogView from '../components/views/AuditLogView';
 import SettingsView from '../components/views/SettingsView';
 import UserManagementView from '../components/views/UserManagementView';
 import SurveyView from '../components/views/SurveyView';
+import ResearchDataView from '../components/views/ResearchDataView';
 import { createClient } from '../utils/supabase/client';
 
 export default function DashboardPage() {
@@ -358,6 +359,10 @@ export default function DashboardPage() {
               <SurveyView 
                 isActive={activeView === 'surveyView'}
                 onSubmitSurvey={handleSaveSurvey}
+              />
+              <ResearchDataView
+                isActive={activeView === 'researchDataView'}
+                currentUser={currentUser}
               />
             </>
           )}

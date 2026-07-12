@@ -1,5 +1,5 @@
 "use client";
-import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck, UserCog, ClipboardList } from 'lucide-react';
+import { Map, Users, Bell, BarChart3, FileKey, ShieldCheck, UserCog, ClipboardList, Database } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeView, setActiveView }) {
@@ -60,6 +60,13 @@ export default function Sidebar({ activeView, setActiveView }) {
               <ClipboardList size={18}/> <span>ทำแบบประเมิน (วิจัย)</span>
             </a>
           </li>
+          {currentUser?.role === 'admin' && (
+            <li>
+              <a href="#" className={`nav-item ${activeView === 'researchDataView' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('researchDataView'); }} style={{ color: '#fde047' }}>
+                <Database size={18}/> <span>ข้อมูลงานวิจัย (Admin)</span>
+              </a>
+            </li>
+          )}
         </ul>
       </nav>
 
