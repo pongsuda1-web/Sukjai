@@ -208,8 +208,8 @@ export default function DashboardPage() {
           missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
           notes: finalNotes,
           medication_status: true,
-          latitude: 13.0 + (Math.random() * 0.1), // Mock coordinates
-          longitude: 100.9 + (Math.random() * 0.1)
+          latitude: 18.7 + (Math.random() * 0.2), // Mock coordinates for Nan
+          longitude: 100.7 + (Math.random() * 0.2)
         };
       });
 

@@ -23,8 +23,8 @@ const hospitalIcon = new L.Icon({
 });
 
 export default function MapComponent({ patients, clinics, privacyShieldActive }) {
-  // Center of Map (Takhian Tia roughly)
-  const defaultCenter = [13.02, 100.95];
+  // พิกัดเริ่มต้น: จังหวัดน่าน
+  const defaultCenter = [18.783, 100.783];
 
   const getMarkerColor = (risk) => {
     switch (risk) {
