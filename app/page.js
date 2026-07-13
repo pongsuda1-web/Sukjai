@@ -57,7 +57,7 @@ export default function DashboardPage() {
       if (error) throw error;
       
       // Map database schema to UI format
-      const formattedPatients = (data || []).map(p => ({
+      let formattedPatients = (data || []).map(p => ({
         id: p.id,
         hn: p.hn,
         name: p.full_name,
@@ -73,8 +73,17 @@ export default function DashboardPage() {
         missedAppointments: p.missed_appointments,
         notes: p.notes,
         medicationStatus: p.medication_status,
-        last_visit_date: p.last_visit_date || new Date().toISOString().split('T')[0]
-      })).map(p => {
+        last_visit_date: p.last_visit_date || new Date().toISOString().split('T')[0],
+        hospital_id: p.hospital_id,
+        pcu_id: p.pcu_id
+      }));
+
+      // Role-based visibility logic: JHW should not see 'green' risk patients
+      if (currentUser?.role === 'jhw') {
+        formattedPatients = formattedPatients.filter(p => p.risk !== 'green');
+      }
+      
+      const finalPatients = formattedPatients.map(p => {
         // Calculate next_visit_date
         const lastVisit = new Date(p.last_visit_date);
         let daysToAdd = 30; // default to monthly
@@ -88,7 +97,7 @@ export default function DashboardPage() {
         return { ...p, next_visit_date: nextVisit.toISOString().split('T')[0] };
       });
       
-      setPatients(formattedPatients);
+      setPatients(finalPatients);
 
       // Fetch users (profiles)
       const { data: usersData, error: usersErr } = await supabase

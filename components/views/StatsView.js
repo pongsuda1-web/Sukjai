@@ -75,6 +75,25 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
   // Trend Data Logic (Mocked history + Current data)
   const currentRedCount = redCount || 0;
   
+  // Hospital Summary Data
+  const hospitalStats = {};
+  filteredPatients.forEach(p => {
+    // If they have a PCU, we might group by PCU, otherwise Hospital. Let's show whichever is present.
+    // Or just group by PCU if available, else Hospital
+    const hospName = (p.pcu && p.pcu !== '-') ? p.pcu : ((p.hospital && p.hospital !== '-') ? p.hospital : 'ไม่ระบุ');
+    if (!hospitalStats[hospName]) {
+      hospitalStats[hospName] = { total: 0, highRisk: 0 };
+    }
+    hospitalStats[hospName].total++;
+    if (p.risk === 'red' || p.risk === 'yellow') {
+      hospitalStats[hospName].highRisk++;
+    }
+  });
+
+  const hospitalStatsArray = Object.keys(hospitalStats)
+    .map(name => ({ name, ...hospitalStats[name] }))
+    .sort((a, b) => b.total - a.total);
+  
   const trendData = {
     labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'เดือนนี้'],
     datasets: [
@@ -180,6 +199,35 @@ export default function StatsView({ isActive, patients = [], clinics = [], curre
           <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#0f2537' }}>แนวโน้มผู้ป่วยเสี่ยงสูง (สีแดง) ย้อนหลัง 6 เดือน</h3>
           <div className="chart-wrapper" style={{ height: '300px' }}>
             <Line data={trendData} options={trendOptions} />
+          </div>
+        </div>
+
+        {/* Hospital Summary Table */}
+        <div className="stats-card" style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: '8px', padding: '20px', border: '1px solid #cbd5e1', marginTop: '20px' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#0f2537' }}>สรุปข้อมูลรายสถานพยาบาล / รพ.สต.</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#f8f9fa', textAlign: 'left' }}>
+                  <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>ชื่อสถานพยาบาล</th>
+                  <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>คนไข้ทั้งหมดในความดูแล (คน)</th>
+                  <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>คนไข้กลุ่มเสี่ยงสูง (แดง+เหลือง)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hospitalStatsArray.length > 0 ? hospitalStatsArray.map((stat, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '12px' }}>{stat.name}</td>
+                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{stat.total}</td>
+                    <td style={{ padding: '12px', color: stat.highRisk > 0 ? '#d32f2f' : 'inherit' }}>{stat.highRisk}</td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="3" style={{ padding: '12px', textAlign: 'center', color: '#666' }}>ไม่มีข้อมูล</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
