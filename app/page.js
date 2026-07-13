@@ -192,22 +192,25 @@ export default function DashboardPage() {
           'โรงพยาบาล', 'hospital', 'รพ.สต.', 'pcu', 'หมู่บ้าน', 'village', 'ระดับความเสี่ยง', 
           'SMI-V', 'smi_v', 'ความถี่การติดตาม', 'followup_frequency', 
           'ขาดนัด (ครั้ง)', 'missed_appointments', 'หมายเหตุ', 'notes',
-          'บ้านเลขที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'ละติจูด', 'ลองจิจูด', 'latitude', 'longitude'
+          'บ้านเลขที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'ละติจูด', 'ลองจิจูด', 'latitude', 'longitude',
+          'ลำดับ', 'สถานบริการที่', 'ชื่อสถานบริการที่บันทึก', 'เขตสุขภาพ', 'บัตรประชาชน', 'ชื่อ - นามสกุล',
+          'หมู่ที่', 'รหัส รพ.สต.', 'ชื่อ รพ.สต.', 'รหัส รพ.พี่เลี้ยง', 'ชื่อรพ.พี่เลี้ยง', 'ชื่อ รพ.พี่เลี้ยง',
+          'รหัส รพช./CUP', 'ชื่อ รพช./CUP', 'การวินิจฉัย', 'SMI-V 1', 'SMI-V 2', 'SMI-V 3', 'SMI-V 4'
         ];
 
         // Gather any extra columns into an array
         let extraNotes = [];
         Object.keys(row).forEach(key => {
-          if (!knownKeys.includes(key) && row[key] !== undefined && row[key] !== null) {
+          if (!knownKeys.includes(key) && row[key] !== undefined && row[key] !== null && row[key] !== '') {
             extraNotes.push(`${key}: ${row[key]}`);
           }
         });
 
         // Find hospital ID and PCU ID
-        const clinicName = row['โรงพยาบาล'] || row['hospital'];
+        const clinicName = row['ชื่อ รพช./CUP'] || row['ชื่อ รพ.พี่เลี้ยง'] || row['ชื่อรพ.พี่เลี้ยง'] || row['โรงพยาบาล'] || row['hospital'];
         const clinic = clinics.find(c => c.name === clinicName && (!c.type || c.type === 'hospital'));
         
-        const pcuName = row['รพ.สต.'] || row['pcu'];
+        const pcuName = row['ชื่อ รพ.สต.'] || row['รพ.สต.'] || row['pcu'];
         const pcu = clinics.find(c => c.name === pcuName && c.type === 'pcu');
         
         let riskVal = 'green';
@@ -215,18 +218,27 @@ export default function DashboardPage() {
         if (riskStr.includes('แดง') || riskStr === 'red') riskVal = 'red';
         else if (riskStr.includes('เหลือง') || riskStr === 'yellow') riskVal = 'yellow';
 
+        // Check SMI-V from multiple columns
+        let smiVArr = [];
+        if (row['SMI-V 1']) smiVArr.push('SMI-V 1');
+        if (row['SMI-V 2']) smiVArr.push('SMI-V 2');
+        if (row['SMI-V 3']) smiVArr.push('SMI-V 3');
+        if (row['SMI-V 4']) smiVArr.push('SMI-V 4');
+        const smiVFinal = row['SMI-V'] || row['smi_v'] || smiVArr.join(', ');
+
         const originalNotes = row['หมายเหตุ'] || row['notes'] || '';
         const finalNotes = [originalNotes, ...extraNotes].filter(Boolean).join(' | ');
 
         // Address Builder
         let fullVillage = row['หมู่บ้าน'] || row['village'] || '';
         const houseNo = row['บ้านเลขที่'];
+        const moo = row['หมู่ที่'];
         const subdistrict = row['ตำบล'];
         const district = row['อำเภอ'];
         const province = row['จังหวัด'];
         
         if (houseNo || subdistrict || district) {
-          fullVillage = `${houseNo ? houseNo + ' ' : ''}${fullVillage ? 'ม.' + fullVillage + ' ' : ''}${subdistrict ? 'ต.' + subdistrict + ' ' : ''}${district ? 'อ.' + district + ' ' : ''}${province ? 'จ.' + province : ''}`.trim();
+          fullVillage = `${houseNo ? houseNo + ' ' : ''}${moo ? 'ม.' + moo + ' ' : ''}${fullVillage ? fullVillage + ' ' : ''}${subdistrict ? 'ต.' + subdistrict + ' ' : ''}${district ? 'อ.' + district + ' ' : ''}${province ? 'จ.' + province : ''}`.trim();
         }
 
         // Coordinates
@@ -236,14 +248,14 @@ export default function DashboardPage() {
         const finalLng = lng ? parseFloat(lng) : 100.7 + (Math.random() * 0.2);
 
         return {
-          hn: row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
-          full_name: row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
-          dx: row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
+          hn: row['บัตรประชาชน'] || row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
+          full_name: row['ชื่อ - นามสกุล'] || row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
+          dx: row['การวินิจฉัย'] || row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
           hospital_id: clinic ? clinic.id : null,
           pcu_id: pcu ? pcu.id : null,
           village: fullVillage,
           risk: riskVal,
-          smi_v: row['SMI-V'] || row['smi_v'] || '',
+          smi_v: smiVFinal,
           followup_frequency: row['ความถี่การติดตาม'] || row['followup_frequency'] || 'รายเดือน',
           missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
           notes: finalNotes,
