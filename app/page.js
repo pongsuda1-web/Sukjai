@@ -195,7 +195,8 @@ export default function DashboardPage() {
           'บ้านเลขที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'ละติจูด', 'ลองจิจูด', 'latitude', 'longitude',
           'ลำดับ', 'สถานบริการที่', 'ชื่อสถานบริการที่บันทึก', 'เขตสุขภาพ', 'บัตรประชาชน', 'ชื่อ - นามสกุล',
           'หมู่ที่', 'รหัส รพ.สต.', 'ชื่อ รพ.สต.', 'รหัส รพ.พี่เลี้ยง', 'ชื่อรพ.พี่เลี้ยง', 'ชื่อ รพ.พี่เลี้ยง',
-          'รหัส รพช./CUP', 'ชื่อ รพช./CUP', 'การวินิจฉัย', 'SMI-V 1', 'SMI-V 2', 'SMI-V 3', 'SMI-V 4'
+          'รหัส รพช./CUP', 'ชื่อ รพช./CUP', 'การวินิจฉัย', 'SMI-V 1', 'SMI-V 2', 'SMI-V 3', 'SMI-V 4',
+          'pname', 'ชื่อ', 'นามสกุล', 'age', 'visit date', 'doctor', 'หมู่', 'mobile_pho', 'icd10'
         ];
 
         // Gather any extra columns into an array
@@ -205,6 +206,13 @@ export default function DashboardPage() {
             extraNotes.push(`${key}: ${row[key]}`);
           }
         });
+
+        // Name Builder
+        let title = row['pname'] || '';
+        let firstName = row['ชื่อ'] || '';
+        let lastName = row['นามสกุล'] || '';
+        let combinedName = `${title}${firstName} ${lastName}`.trim();
+        if (combinedName === '') combinedName = null;
 
         // Find hospital ID and PCU ID
         const clinicName = row['ชื่อ รพช./CUP'] || row['ชื่อ รพ.พี่เลี้ยง'] || row['ชื่อรพ.พี่เลี้ยง'] || row['โรงพยาบาล'] || row['hospital'];
@@ -232,12 +240,12 @@ export default function DashboardPage() {
         // Address Builder
         let fullVillage = row['หมู่บ้าน'] || row['village'] || '';
         const houseNo = row['บ้านเลขที่'];
-        const moo = row['หมู่ที่'];
+        const moo = row['หมู่ที่'] || row['หมู่'];
         const subdistrict = row['ตำบล'];
         const district = row['อำเภอ'];
         const province = row['จังหวัด'];
         
-        if (houseNo || subdistrict || district) {
+        if (houseNo || subdistrict || district || moo) {
           fullVillage = `${houseNo ? houseNo + ' ' : ''}${moo ? 'ม.' + moo + ' ' : ''}${fullVillage ? fullVillage + ' ' : ''}${subdistrict ? 'ต.' + subdistrict + ' ' : ''}${district ? 'อ.' + district + ' ' : ''}${province ? 'จ.' + province : ''}`.trim();
         }
 
@@ -249,8 +257,8 @@ export default function DashboardPage() {
 
         return {
           hn: row['HN'] || row['hn'] || row['บัตรประชาชน'] || `HN-${Math.floor(Math.random()*10000)}`,
-          full_name: row['ชื่อ - นามสกุล'] || row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
-          dx: row['การวินิจฉัย'] || row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
+          full_name: combinedName || row['ชื่อ - นามสกุล'] || row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
+          dx: row['icd10'] || row['การวินิจฉัย'] || row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
           hospital_id: clinic ? clinic.id : null,
           pcu_id: pcu ? pcu.id : null,
           village: fullVillage,
