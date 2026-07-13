@@ -247,7 +247,6 @@ export default function DashboardPage() {
           followup_frequency: row['ความถี่การติดตาม'] || row['followup_frequency'] || 'รายเดือน',
           missed_appointments: parseInt(row['ขาดนัด (ครั้ง)'] || row['missed_appointments'] || 0),
           notes: finalNotes,
-          medication_status: true,
           latitude: finalLat,
           longitude: finalLng
         };
