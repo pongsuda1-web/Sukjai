@@ -255,7 +255,7 @@ export default function DashboardPage() {
 
       const { error } = await supabase
         .from('patients')
-        .insert(formattedData);
+        .upsert(formattedData, { onConflict: 'hn' });
 
       if (error) throw error;
       alert(`นำเข้าข้อมูลผู้ป่วยสำเร็จ ${formattedData.length} รายการ!`);

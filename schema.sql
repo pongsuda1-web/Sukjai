@@ -72,13 +72,13 @@ CREATE POLICY "Admins can update profiles" ON profiles FOR UPDATE USING (
 -- Clinics: Everyone can view
 CREATE POLICY "Clinics are viewable by everyone" ON clinics FOR SELECT USING (true);
 
--- Patients: Everyone can view, but only doctors can insert/update
+-- Patients: Everyone can view, but only authorized roles can insert/update
 CREATE POLICY "Patients are viewable by everyone" ON patients FOR SELECT USING (true);
-CREATE POLICY "Doctors can insert patients" ON patients FOR INSERT WITH CHECK (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'doctor'
+CREATE POLICY "Authorized can insert patients" ON patients FOR INSERT WITH CHECK (
+  (SELECT role FROM profiles WHERE id = auth.uid()) IN ('doctor', 'manager', 'admin')
 );
-CREATE POLICY "Doctors can update patients" ON patients FOR UPDATE USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'doctor'
+CREATE POLICY "Authorized can update patients" ON patients FOR UPDATE USING (
+  (SELECT role FROM profiles WHERE id = auth.uid()) IN ('doctor', 'manager', 'admin')
 );
 
 -- Audit Logs: Insertable by anyone logged in, viewable only by admins
