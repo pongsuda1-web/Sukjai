@@ -248,7 +248,7 @@ export default function DashboardPage() {
         const finalLng = lng ? parseFloat(lng) : 100.7 + (Math.random() * 0.2);
 
         return {
-          hn: row['บัตรประชาชน'] || row['HN'] || row['hn'] || `HN-${Math.floor(Math.random()*10000)}`,
+          hn: row['HN'] || row['hn'] || row['บัตรประชาชน'] || `HN-${Math.floor(Math.random()*10000)}`,
           full_name: row['ชื่อ - นามสกุล'] || row['ชื่อ-นามสกุล'] || row['name'] || 'ไม่ระบุชื่อ',
           dx: row['การวินิจฉัย'] || row['การวินิจฉัย (ICD-10)'] || row['dx'] || '',
           hospital_id: clinic ? clinic.id : null,
