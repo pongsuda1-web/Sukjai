@@ -55,10 +55,23 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
           iconAnchor: [12, 12]
         });
 
+        // Calculate Stats for this clinic
+        const clinicPatients = patients.filter(p => p.hospital_id === clinic.id || p.pcu_id === clinic.id || p.hospital === clinic.name || p.pcu === clinic.name);
+        const totalCount = clinicPatients.length;
+        const smiVCount = clinicPatients.filter(p => p.smiV && p.smiV.trim() !== '').length;
+        const missedCount = clinicPatients.filter(p => p.missedAppointments > 0).length;
+
         return (
           <Marker key={`clinic-${idx}`} position={[clinic.lat, clinic.lng]} icon={customIcon}>
             <Popup>
-              <strong>{clinic.name}</strong><br />{isHospital ? 'โรงพยาบาล' : 'รพ.สต.'}
+              <strong>{clinic.name}</strong><br />
+              <span style={{color: '#666', fontSize: '0.85em'}}>{isHospital ? 'โรงพยาบาล' : 'รพ.สต.'}</span>
+              <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #eee' }} />
+              <div style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+                ผู้ป่วยในความดูแล: <strong>{totalCount}</strong> คน<br />
+                เคส SMI-V: <strong>{smiVCount}</strong> คน<br />
+                ขาดนัด/ขาดยา: <strong style={{ color: missedCount > 0 ? '#d32f2f' : 'inherit' }}>{missedCount}</strong> คน
+              </div>
             </Popup>
           </Marker>
         );

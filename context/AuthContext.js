@@ -58,7 +58,8 @@ export function AuthProvider({ children }) {
           id: user.id,
           email: user.email,
           name: data.full_name || user.email || 'LINE User',
-          role: data.role || 'jhw'
+          role: data.role || 'jhw',
+          hospital_id: data.hospital_id || null
         });
       } else {
         // Auto-create profile for OAuth users (e.g. LINE) if missing
@@ -109,7 +110,7 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
-  const register = async (email, password, fullName) => {
+  const register = async (email, password, fullName, role = 'jhw', hospitalId = null) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -122,9 +123,18 @@ export function AuthProvider({ children }) {
     
     // Create profile if successful
     if (data?.user) {
-      const { error: profileError } = await supabase.from('profiles').insert([
-        { id: data.user.id, full_name: fullName, username: email, role: 'jhw', is_approved: false }
-      ]);
+      const profileData = { 
+        id: data.user.id, 
+        full_name: fullName, 
+        username: email, 
+        role: role, 
+        is_approved: false 
+      };
+      if (hospitalId) {
+        profileData.hospital_id = hospitalId;
+      }
+
+      const { error: profileError } = await supabase.from('profiles').insert([profileData]);
       if (profileError) console.error("Error creating profile:", profileError);
     }
     

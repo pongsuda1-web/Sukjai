@@ -78,9 +78,16 @@ export default function DashboardPage() {
         pcu_id: p.pcu_id
       }));
 
-      // Role-based visibility logic: JHW should not see 'green' risk patients
+      // Role and Affiliation-based visibility logic
       if (currentUser?.role === 'jhw') {
         formattedPatients = formattedPatients.filter(p => p.risk !== 'green');
+      }
+
+      // If user has a hospital_id and is not admin/manager, restrict to their hospital/PCU only
+      if (currentUser?.hospital_id && currentUser?.role !== 'admin' && currentUser?.role !== 'manager') {
+        formattedPatients = formattedPatients.filter(p => 
+          p.hospital_id === currentUser.hospital_id || p.pcu_id === currentUser.hospital_id
+        );
       }
       
       const finalPatients = formattedPatients.map(p => {
