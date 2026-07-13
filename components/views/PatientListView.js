@@ -7,12 +7,33 @@ import PatientForm from '../PatientForm';
 export default function PatientListView({ patients, clinics, onAddPatient, onEditPatient, onDeletePatient, onImportPatients, privacyShieldActive, currentUser, isActive }) {
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRisk, setFilterRisk] = useState('all');
+  const [filterMissed, setFilterMissed] = useState('all');
   const fileInputRef = useRef(null);
 
   if (!isActive) return null;
 
-  const isRestrictedRole = currentUser?.role === 'jhw' || currentUser?.role === 'social_worker';
+  const isJhw = currentUser?.role === 'jhw';
+  const isRestrictedRole = isJhw || currentUser?.role === 'social_worker';
   const forcePrivacy = isRestrictedRole ? true : privacyShieldActive;
+  
+  const displayPatients = patients.filter(p => {
+    // Search
+    const searchMatch = !searchTerm || 
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.hn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.village?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Risk Filter
+    const riskMatch = filterRisk === 'all' || p.risk === filterRisk;
+    
+    // Missed Filter
+    const missedMatch = filterMissed === 'all' || 
+      (filterMissed === 'missed' && p.missedAppointments > 0);
+      
+    return searchMatch && riskMatch && missedMatch;
+  });
 
   const exportToExcel = () => {
     // Format data for export
@@ -112,7 +133,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             setShowModal(true);
           }} id="btnAddNewPatient"><UserPlus size={16} /> เพิ่มทะเบียนคนไข้ใหม่</button>
           
-          {(currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.role === 'doctor') && (
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
             <>
               <input 
                 type="file" 
@@ -128,37 +149,63 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
               >
                 <Upload size={16} /> นำเข้าข้อมูล (Excel)
               </button>
+              <button className="btn-secondary" id="btnExportPatients" onClick={exportToExcel}><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
             </>
           )}
-
-          <button className="btn-secondary" id="btnExportPatients" onClick={exportToExcel}><Download size={16} /> พิมพ์/ส่งออกรายงาน</button>
         </div>
       </div>
       
-      <div className="search-filter-bar">
-        <div className="search-box">
-          <Search size={18} />
-          <input type="text" id="patientSearchInput" placeholder="ค้นหาตามชื่อ, HN, หรือตำบล..." />
+      <div className="search-filter-bar" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '1rem' }}>
+        <div className="search-box" style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '0 8px', flex: '1', minWidth: '200px' }}>
+          <Search size={18} color="#666" />
+          <input 
+            type="text" 
+            placeholder="ค้นหาตามชื่อ, HN, หรือหมู่บ้าน..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ border: 'none', padding: '8px', width: '100%', outline: 'none' }}
+          />
         </div>
-        <div className="filters">
-          <select id="filterRiskLevel" className="filter-select">
+        <div className="filters" style={{ display: 'flex', gap: '10px' }}>
+          <select value={filterRisk} onChange={(e) => setFilterRisk(e.target.value)} className="filter-select" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
             <option value="all">ทุกความเสี่ยง</option>
-            <option value="red">เฝ้าระวังสูง (แดง)</option>
-            <option value="yellow">เฝ้าระวังปานกลาง (เหลือง)</option>
-            <option value="green">เฝ้าระวังต่ำ (เขียว)</option>
+            <option value="red">🔴 เสี่ยงสูง (แดง)</option>
+            <option value="yellow">🟡 เสี่ยงปานกลาง (เหลือง)</option>
+            {!isJhw && <option value="green">🟢 เสี่ยงต่ำ (เขียว)</option>}
           </select>
-          <select id="filterFollowUp" className="filter-select">
-            <option value="all">ทุกระดับติดตาม</option>
-            <option value="weekly">รายสัปดาห์</option>
-            <option value="monthly">รายเดือน</option>
-            <option value="quarterly">ราย 3 เดือน</option>
-            <option value="semi-annual">ราย 6 เดือน</option>
+          <select value={filterMissed} onChange={(e) => setFilterMissed(e.target.value)} className="filter-select" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
+            <option value="all">นัดหมายทั้งหมด</option>
+            <option value="missed">🚨 เฉพาะเคสขาดนัด</option>
           </select>
         </div>
       </div>
 
-      <div className="table-container" style={{ marginTop: '1rem' }}>
-        <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {isJhw ? (
+        <div className="cards-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {displayPatients.map(p => (
+            <div key={p.id} style={{ background: '#fff', borderRadius: '8px', padding: '16px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f2537' }}>{forcePrivacy ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name}</h3>
+                <span className="badge" style={{background: p.risk === 'red' ? '#ffebee' : '#e8f5e9', color: p.risk === 'red' ? '#c62828' : '#2e7d32', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>
+                  {p.risk === 'red' ? 'เสี่ยงสูง' : 'เฝ้าระวัง'}
+                </span>
+              </div>
+              <p style={{ margin: '0 0 4px', fontSize: '0.9rem', color: '#666' }}><strong>หมู่บ้าน:</strong> {p.village}</p>
+              <p style={{ margin: '0 0 12px', fontSize: '0.9rem', color: '#666' }}>
+                <strong>ขาดนัด:</strong> <span style={{ color: p.missedAppointments > 0 ? '#d32f2f' : 'inherit', fontWeight: p.missedAppointments > 0 ? 'bold' : 'normal' }}>{p.missedAppointments} ครั้ง</span>
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
+                <button onClick={() => { setEditingPatient(p); setShowModal(true); }} style={{ background: 'none', border: '1px solid #185fa5', color: '#185fa5', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                  <Edit2 size={14} /> อัปเดตข้อมูล
+                </button>
+              </div>
+            </div>
+          ))}
+          {displayPatients.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#666' }}>ไม่พบรายชื่อคนไข้</div>}
+        </div>
+      ) : (
+        <div className="table-container" style={{ marginTop: '1rem' }}>
+          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.5)' }}>
               <th>HN</th>
@@ -175,7 +222,9 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
             </tr>
           </thead>
           <tbody>
-            {patients.map(p => (
+            {displayPatients.length === 0 ? (
+              <tr><td colSpan="11" style={{textAlign:'center', padding:'2rem', color:'#666'}}>ไม่พบรายชื่อคนไข้</td></tr>
+            ) : displayPatients.map(p => (
               <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td>{p.hn}</td>
                 <td>{forcePrivacy ? (p.name ? p.name.substring(0, 3) + '*** ****' : '***') : p.name}</td>
@@ -219,6 +268,7 @@ export default function PatientListView({ patients, clinics, onAddPatient, onEdi
           </tbody>
         </table>
       </div>
+      )}
     </section>
   );
 }

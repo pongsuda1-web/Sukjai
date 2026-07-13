@@ -1,9 +1,29 @@
 "use client";
 import { BrainCircuit, ShieldAlert, Lock, UserCog, EyeOff, Eye, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { createClient } from '../../utils/supabase/client';
 
 export default function Header({ privacyShieldActive, setPrivacyShieldActive }) {
   const { currentUser, logout } = useAuth();
+  
+  const handleTogglePrivacy = async () => {
+    const newState = !privacyShieldActive;
+    setPrivacyShieldActive(newState);
+    
+    // Log if privacy shield is disabled
+    if (!newState && currentUser) {
+      try {
+        const supabase = createClient();
+        await supabase.from('audit_logs').insert([{
+          user_id: currentUser.id,
+          action: 'DISABLE_PRIVACY_SHIELD',
+          details: 'User disabled privacy shield to view full patient names'
+        }]);
+      } catch (err) {
+        console.error("Failed to log audit:", err);
+      }
+    }
+  };
 
   if (!currentUser) return null;
 
@@ -42,7 +62,7 @@ export default function Header({ privacyShieldActive, setPrivacyShieldActive }) 
         <div className="privacy-shield-container">
           <button 
             className={`btn-privacy-shield ${privacyShieldActive ? 'active' : ''}`}
-            onClick={() => setPrivacyShieldActive(!privacyShieldActive)}
+            onClick={handleTogglePrivacy}
           >
             {privacyShieldActive ? <EyeOff size={16} /> : <Eye size={16} />}
             <span>Privacy Shield: {privacyShieldActive ? 'ON' : 'OFF'}</span>

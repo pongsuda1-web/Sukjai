@@ -353,6 +353,9 @@ export default function DashboardPage() {
 
   if (!currentUser) return null;
 
+  const highRiskCount = patients.filter(p => p.risk === 'red').length;
+  const missedCount = patients.filter(p => p.missedAppointments > 0).length;
+
   return (
     <div className="app-layout">
       <Header 
@@ -364,6 +367,18 @@ export default function DashboardPage() {
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
         <main className="app-content">
+          {(highRiskCount > 0 || missedCount > 0) && (
+            <div style={{ background: '#ffebee', border: '1px solid #ffcdd2', padding: '15px', borderRadius: '8px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px', color: '#c62828' }}>
+              <div style={{ fontSize: '1.2rem' }}>🚨</div>
+              <div>
+                <strong>แจ้งเตือนด่วน:</strong> คุณมีคนไข้ในความดูแลที่ 
+                {highRiskCount > 0 && <span> มีความเสี่ยงสูง (สีแดง) {highRiskCount} ราย</span>}
+                {highRiskCount > 0 && missedCount > 0 && <span> และ </span>}
+                {missedCount > 0 && <span> ขาดนัด/ขาดยา {missedCount} ราย</span>}
+                {' '}กรุณาตรวจสอบในศูนย์การแจ้งเตือน
+              </div>
+            </div>
+          )}
           {patients.length === 0 && !loading && (
             <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '8px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>ยังไม่มีข้อมูลคนไข้ในระบบฐานข้อมูล Supabase ของคุณเลยครับ!</span>
