@@ -43,13 +43,26 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
       />
       
       {/* Render Clinics */}
-      {clinics.map((clinic, idx) => (
-        <Marker key={`clinic-${idx}`} position={[clinic.lat, clinic.lng]} icon={hospitalIcon}>
-          <Popup>
-            <strong>{clinic.name}</strong><br />สถานพยาบาลชุมชน
-          </Popup>
-        </Marker>
-      ))}
+      {clinics.map((clinic, idx) => {
+        const isHospital = clinic.type === 'hospital' || !clinic.type;
+        const iconColor = isHospital ? '#0277bd' : '#00897b'; // Blue for Hospital, Teal for PCU
+        const iconText = isHospital ? 'H' : '✚';
+        
+        const customIcon = L.divIcon({
+          html: `<div style="background-color: ${iconColor}; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-weight: bold; font-size: 12px;">${iconText}</div>`,
+          className: '',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        return (
+          <Marker key={`clinic-${idx}`} position={[clinic.lat, clinic.lng]} icon={customIcon}>
+            <Popup>
+              <strong>{clinic.name}</strong><br />{isHospital ? 'โรงพยาบาล' : 'รพ.สต.'}
+            </Popup>
+          </Marker>
+        );
+      })}
 
       {/* Render Patients */}
       {patients.map(p => {
