@@ -61,6 +61,14 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
         const smiVCount = clinicPatients.filter(p => p.smiV && p.smiV.trim() !== '').length;
         const missedCount = clinicPatients.filter(p => p.missedAppointments > 0).length;
 
+        // Breakdown by district (Amphoe)
+        const districtCounts = {};
+        clinicPatients.forEach(p => {
+          const match = p.village?.match(/อ\.([ก-๙a-zA-Z]+)/);
+          const amphoe = match ? `อ.${match[1]}` : 'ไม่ระบุอำเภอ';
+          districtCounts[amphoe] = (districtCounts[amphoe] || 0) + 1;
+        });
+
         return (
           <Marker key={`clinic-${idx}`} position={[clinic.lat, clinic.lng]} icon={customIcon}>
             <Popup>
@@ -72,6 +80,24 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
                 เคส SMI-V: <strong>{smiVCount}</strong> คน<br />
                 ขาดนัด/ขาดยา: <strong style={{ color: missedCount > 0 ? '#d32f2f' : 'inherit' }}>{missedCount}</strong> คน
               </div>
+              
+              {totalCount > 0 && (
+                <>
+                  <div style={{ marginTop: '8px', marginBottom: '4px', fontSize: '0.85em', fontWeight: 'bold', color: '#0277bd' }}>
+                    แยกตามอำเภอ:
+                  </div>
+                  <div style={{ fontSize: '0.85em', lineHeight: '1.4', background: '#f5f5f5', padding: '6px', borderRadius: '4px' }}>
+                    {Object.entries(districtCounts)
+                      .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                      .map(([amphoe, count]) => (
+                        <div key={amphoe} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{amphoe}</span>
+                          <strong>{count} คน</strong>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              )}
             </Popup>
           </Marker>
         );
