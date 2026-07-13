@@ -61,12 +61,18 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
         const smiVCount = clinicPatients.filter(p => p.smiV && p.smiV.trim() !== '').length;
         const missedCount = clinicPatients.filter(p => p.missedAppointments > 0).length;
 
-        // Breakdown by district (Amphoe)
-        const districtCounts = {};
+        // Breakdown by area (Amphoe for Hospitals, Tambon for PCUs)
+        const areaCounts = {};
         clinicPatients.forEach(p => {
-          const match = p.village?.match(/อ\.([ก-๙a-zA-Z]+)/);
-          const amphoe = match ? `อ.${match[1]}` : 'ไม่ระบุอำเภอ';
-          districtCounts[amphoe] = (districtCounts[amphoe] || 0) + 1;
+          if (isHospital) {
+            const match = p.village?.match(/อ\.([ก-๙a-zA-Z]+)/);
+            const area = match ? `อ.${match[1]}` : 'ไม่ระบุอำเภอ';
+            areaCounts[area] = (areaCounts[area] || 0) + 1;
+          } else {
+            const match = p.village?.match(/ต\.([ก-๙a-zA-Z]+)/);
+            const area = match ? `ต.${match[1]}` : 'ไม่ระบุตำบล';
+            areaCounts[area] = (areaCounts[area] || 0) + 1;
+          }
         });
 
         return (
@@ -84,14 +90,14 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
               {totalCount > 0 && (
                 <>
                   <div style={{ marginTop: '8px', marginBottom: '4px', fontSize: '0.85em', fontWeight: 'bold', color: '#0277bd' }}>
-                    แยกตามอำเภอ:
+                    {isHospital ? 'แยกตามอำเภอ:' : 'แยกตามตำบล:'}
                   </div>
                   <div style={{ fontSize: '0.85em', lineHeight: '1.4', background: '#f5f5f5', padding: '6px', borderRadius: '4px' }}>
-                    {Object.entries(districtCounts)
+                    {Object.entries(areaCounts)
                       .sort((a, b) => b[1] - a[1]) // Sort by count descending
-                      .map(([amphoe, count]) => (
-                        <div key={amphoe} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{amphoe}</span>
+                      .map(([area, count]) => (
+                        <div key={area} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{area}</span>
                           <strong>{count} คน</strong>
                         </div>
                       ))}
