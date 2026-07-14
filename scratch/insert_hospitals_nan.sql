@@ -1,0 +1,14 @@
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลแม่จริม', 18.718, 100.999);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลบ้านหลวง', 18.847, 100.439);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลนาน้อย', 18.324, 100.716);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลสมเด็จพระยุพราชปัว', 19.176, 100.916);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลท่าวังผา', 19.109, 100.793);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลเวียงสา', 18.577, 100.752);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลทุ่งช้าง', 19.412, 100.871);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลเชียงกลาง', 19.296, 100.863);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลนาหมื่น', 18.175, 100.676);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลสันติสุข', 18.918, 100.939);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลบ่อเกลือ', 19.148, 101.154);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลสองแคว', 19.349, 100.702);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลเฉลิมพระเกียรติ', 19.577, 101.077);
+INSERT INTO clinics (name, latitude, longitude) VALUES ('โรงพยาบาลภูเพียง', 18.761, 100.796);

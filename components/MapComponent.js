@@ -44,7 +44,7 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
       
       {/* Render Clinics */}
       {clinics.map((clinic, idx) => {
-        const isHospital = clinic.type === 'hospital' || !clinic.type;
+        const isHospital = clinic.type === 'hospital' || (!clinic.type && !clinic.name.includes('รพ.สต.'));
         const iconColor = isHospital ? '#0277bd' : '#00897b'; // Blue for Hospital, Teal for PCU
         const iconText = isHospital ? 'H' : '✚';
         
