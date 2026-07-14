@@ -70,6 +70,12 @@ export default function Sidebar({ activeView, setActiveView }) {
         </ul>
       </nav>
 
+      {/* Copyright Notice */}
+      <div style={{ marginTop: 'auto', padding: '15px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        &copy; {new Date().getFullYear()} ระบบสานใจ (Sukjai).<br/>
+        สงวนลิขสิทธิ์
+      </div>
+      
       {currentUser && (
         <div className="role-info-card" id="roleInfoCard">
           <h3 id="roleInfoTitle">{currentUser.role.toUpperCase()}</h3>
