@@ -338,9 +338,16 @@ export default function DashboardPage() {
         };
       });
 
+      // Deduplicate by HN (Supabase throws error if array has duplicates)
+      const uniqueDataMap = new Map();
+      formattedData.forEach(item => {
+        uniqueDataMap.set(item.hn, item);
+      });
+      const uniqueFormattedData = Array.from(uniqueDataMap.values());
+
       const { error } = await supabase
         .from('patients')
-        .upsert(formattedData, { onConflict: 'hn' });
+        .upsert(uniqueFormattedData, { onConflict: 'hn' });
 
       if (error) throw error;
       alert(`นำเข้าข้อมูลผู้ป่วยสำเร็จ ${formattedData.length} รายการ!`);
