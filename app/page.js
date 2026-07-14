@@ -214,11 +214,15 @@ export default function DashboardPage() {
         let combinedName = `${title}${firstName} ${lastName}`.trim();
         if (combinedName === '') combinedName = null;
 
-        // Find hospital ID and PCU ID
-        const clinicName = row['ชื่อ รพช./CUP'] || row['ชื่อ รพ.พี่เลี้ยง'] || row['ชื่อรพ.พี่เลี้ยง'] || row['โรงพยาบาล'] || row['hospital'];
-        const clinic = clinics.find(c => c.name === clinicName && (!c.type || c.type === 'hospital'));
+        let clinicName = (row['ชื่อ รพช./CUP'] || row['ชื่อ รพ.พี่เลี้ยง'] || row['ชื่อรพ.พี่เลี้ยง'] || row['โรงพยาบาล'] || row['hospital'] || '').trim();
+        if (clinicName === 'รพ.น่าน') clinicName = 'โรงพยาบาลน่าน';
         
-        const pcuName = row['ชื่อ รพ.สต.'] || row['รพ.สต.'] || row['pcu'];
+        const clinic = clinics.find(c => 
+          (c.name === clinicName || c.name.replace('โรงพยาบาล', 'รพ.') === clinicName || c.name.replace('รพ.', 'โรงพยาบาล') === clinicName) 
+          && (!c.type || c.type === 'hospital')
+        );
+        
+        let pcuName = (row['ชื่อ รพ.สต.'] || row['รพ.สต.'] || row['pcu'] || '').trim();
         const pcu = clinics.find(c => c.name === pcuName && c.type === 'pcu');
         
         let riskVal = 'green';
