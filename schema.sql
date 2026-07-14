@@ -38,6 +38,7 @@ CREATE TABLE patients (
     amphoe TEXT,
     province TEXT,
     hospital_id UUID REFERENCES clinics(id) ON DELETE SET NULL,
+    pcu_id UUID REFERENCES clinics(id) ON DELETE SET NULL,
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     last_visit DATE,
