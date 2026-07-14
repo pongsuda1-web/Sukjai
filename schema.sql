@@ -32,6 +32,11 @@ CREATE TABLE patients (
     smi_v TEXT, -- SMI-V category
     followup_frequency TEXT NOT NULL, -- e.g., 'รายสัปดาห์', 'รายเดือน'
     village TEXT NOT NULL,
+    house_no TEXT,
+    moo TEXT,
+    tambon TEXT,
+    amphoe TEXT,
+    province TEXT,
     hospital_id UUID REFERENCES clinics(id) ON DELETE SET NULL,
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,

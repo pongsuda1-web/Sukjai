@@ -13,10 +13,11 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
     risk: initialData?.risk || 'green',
     smi_v: initialData?.smiV || '',
     followup_frequency: initialData?.followup || 'รายเดือน',
-    address: initialData?.village || '',
-    subdistrict: '',
-    district: '',
-    province: 'น่าน',
+    address: initialData?.house_no || initialData?.village || '',
+    moo: initialData?.moo || '',
+    subdistrict: initialData?.tambon || '',
+    district: initialData?.amphoe || '',
+    province: initialData?.province || 'น่าน',
     hospital_id: initialData?.hospital_id || '',
     pcu_id: initialData?.pcu_id || '',
     notes: initialData?.notes || '',
@@ -82,20 +83,23 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
     }
     
     // Combine address parts into village string (or just use address)
-    const villageStr = `${formData.address} ต.${formData.subdistrict} อ.${formData.district} จ.${formData.province}`;
+    const villageStr = `${formData.address} ${formData.moo ? 'ม.'+formData.moo : ''} ${formData.subdistrict ? 'ต.'+formData.subdistrict : ''} ${formData.district ? 'อ.'+formData.district : ''} ${formData.province ? 'จ.'+formData.province : ''}`.trim();
 
     const submissionData = {
       ...formData,
       village: villageStr,
+      house_no: formData.address,
+      moo: formData.moo || '',
+      tambon: formData.subdistrict || '',
+      amphoe: formData.district || '',
+      province: formData.province || 'น่าน',
       latitude: position[0],
       longitude: position[1]
     };
     
-    // Remove individual address fields as they are not in schema
     delete submissionData.address;
     delete submissionData.subdistrict;
     delete submissionData.district;
-    delete submissionData.province;
 
     onSave(submissionData);
   };
@@ -198,8 +202,9 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <input type="text" name="address" placeholder="บ้านเลขที่, หมู่บ้าน, ซอย" value={formData.address} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
+              <div style={{ display: 'flex', gap: '10px', gridColumn: '1 / -1' }}>
+                <input type="text" name="address" placeholder="บ้านเลขที่, ซอย" value={formData.address} onChange={handleChange} style={{ flex: 2, padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
+                <input type="text" name="moo" placeholder="หมู่ที่" value={formData.moo} onChange={handleChange} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
               </div>
               <input type="text" name="subdistrict" placeholder="ตำบล" value={formData.subdistrict} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />
               <input type="text" name="district" placeholder="อำเภอ" value={formData.district} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }} />

@@ -65,12 +65,22 @@ export default function MapComponent({ patients, clinics, privacyShieldActive })
         const areaCounts = {};
         clinicPatients.forEach(p => {
           if (isHospital) {
-            const match = p.village?.match(/อ\.([ก-๙a-zA-Z]+)/);
-            const area = match ? `อ.${match[1]}` : 'ไม่ระบุอำเภอ';
+            let area = p.amphoe || '';
+            if (!area) {
+              const match = p.village?.match(/อ\.([ก-๙a-zA-Z]+)/);
+              area = match ? `อ.${match[1]}` : 'ไม่ระบุอำเภอ';
+            }
+            // Ensure prefix 'อ.' is present if missing but data exists
+            if (area !== 'ไม่ระบุอำเภอ' && !area.startsWith('อ.')) area = `อ.${area}`;
             areaCounts[area] = (areaCounts[area] || 0) + 1;
           } else {
-            const match = p.village?.match(/ต\.([ก-๙a-zA-Z]+)/);
-            const area = match ? `ต.${match[1]}` : 'ไม่ระบุตำบล';
+            let area = p.tambon || '';
+            if (!area) {
+              const match = p.village?.match(/ต\.([ก-๙a-zA-Z]+)/);
+              area = match ? `ต.${match[1]}` : 'ไม่ระบุตำบล';
+            }
+            // Ensure prefix 'ต.' is present if missing but data exists
+            if (area !== 'ไม่ระบุตำบล' && !area.startsWith('ต.')) area = `ต.${area}`;
             areaCounts[area] = (areaCounts[area] || 0) + 1;
           }
         });
