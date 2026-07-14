@@ -96,6 +96,4 @@ CREATE POLICY "Admins can view audit logs" ON audit_logs FOR SELECT USING (
 -- 7. Insert Initial Mock Data
 -- Insert mock clinics
 INSERT INTO clinics (name, latitude, longitude) VALUES 
-('โรงพยาบาลน่าน', 18.79552, 100.78867),
-('รพ.สต. ตะเคียนเตี้ย', 13.0162, 100.9610),
-('รพ.สต. บางละมุง', 13.0385, 100.9312);
+('โรงพยาบาลน่าน', 18.79552, 100.78867);
