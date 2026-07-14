@@ -30,8 +30,41 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
   
   const isRestrictedRole = currentUser?.role === 'jhw' || currentUser?.role === 'social_worker';
 
+  const getClinicType = (name) => {
+    if (!name) return 'unknown';
+    if (name.includes('รพ.สต.')) return 'pcu';
+    if (name.includes('โรงพยาบาล') || name.includes('รพ.น่าน') || name.includes('รพ.สมเด็จพระยุพราชปัว') || (name.includes('รพ.') && !name.includes('รพ.สต.'))) return 'hospital';
+    return 'unknown';
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const newData = { ...formData, [name]: value };
+    
+    // Auto-select hospital based on district (Amphoe)
+    if (name === 'district' && value) {
+      const amphoe = value.trim();
+      let mappedHospitalName = '';
+      
+      if (amphoe === 'เมืองน่าน' || amphoe === 'เมือง') {
+        mappedHospitalName = 'โรงพยาบาลน่าน';
+      } else if (amphoe === 'ปัว') {
+        mappedHospitalName = 'โรงพยาบาลสมเด็จพระยุพราชปัว';
+      } else {
+        mappedHospitalName = 'โรงพยาบาล' + amphoe;
+      }
+      
+      const foundHospital = clinics.find(c => 
+        c.name === mappedHospitalName || 
+        c.name === mappedHospitalName.replace('โรงพยาบาล', 'รพ.')
+      );
+      
+      if (foundHospital) {
+        newData.hospital_id = foundHospital.id;
+      }
+    }
+    
+    setFormData(newData);
   };
 
   const handleSearchAddress = async () => {
@@ -179,7 +212,7 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>โรงพยาบาลหลัก (รพ.)</label>
                 <select name="hospital_id" value={formData.hospital_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
                   <option value="">-- ไม่ระบุ --</option>
-                  {clinics.filter(c => !c.type || c.type === 'hospital').map(c => (
+                  {clinics.filter(c => getClinicType(c.name) === 'hospital').map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
@@ -188,7 +221,7 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>รพ.สต. ที่ดูแล</label>
                 <select name="pcu_id" value={formData.pcu_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
                   <option value="">-- ไม่ระบุ --</option>
-                  {clinics.filter(c => c.type === 'pcu').map(c => (
+                  {clinics.filter(c => getClinicType(c.name) === 'pcu').map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>

@@ -214,16 +214,51 @@ export default function DashboardPage() {
         let combinedName = `${title}${firstName} ${lastName}`.trim();
         if (combinedName === '') combinedName = null;
 
+        const houseNo = row['บ้านเลขที่'];
+        const moo = row['หมู่ที่'] || row['หมู่'];
+        
+        let extractedTambon = (row['ตำบล'] || '').trim();
+        let extractedAmphoe = (row['อำเภอ'] || '').trim();
+        let fullVillageStr = (row['หมู่บ้าน'] || row['village'] || '').trim();
+
+        // Parse from full string if columns are missing
+        if (fullVillageStr) {
+            if (!extractedTambon) {
+                const tMatch = fullVillageStr.match(/ต\.\s*([^\s]+)/) || fullVillageStr.match(/ตำบล\s*([^\s]+)/);
+                if (tMatch) extractedTambon = tMatch[1];
+            }
+            if (!extractedAmphoe) {
+                const aMatch = fullVillageStr.match(/อ\.\s*([^\s]+)/) || fullVillageStr.match(/อำเภอ\s*([^\s]+)/);
+                if (aMatch) extractedAmphoe = aMatch[1];
+            }
+        }
+
         let clinicName = (row['ชื่อ รพช./CUP'] || row['ชื่อ รพ.พี่เลี้ยง'] || row['ชื่อรพ.พี่เลี้ยง'] || row['โรงพยาบาล'] || row['hospital'] || '').trim();
         if (clinicName === 'รพ.น่าน') clinicName = 'โรงพยาบาลน่าน';
         
+        // Auto-assign hospital from district if not provided
+        if (!clinicName && extractedAmphoe) {
+            if (extractedAmphoe === 'เมืองน่าน' || extractedAmphoe === 'เมือง') clinicName = 'โรงพยาบาลน่าน';
+            else if (extractedAmphoe === 'ปัว') clinicName = 'โรงพยาบาลสมเด็จพระยุพราชปัว';
+            else clinicName = 'โรงพยาบาล' + extractedAmphoe;
+        }
+
         const clinic = clinics.find(c => 
-          (c.name === clinicName || c.name.replace('โรงพยาบาล', 'รพ.') === clinicName || c.name.replace('รพ.', 'โรงพยาบาล') === clinicName) 
-          && (!c.type || c.type === 'hospital')
+          c.name === clinicName || 
+          c.name.replace('โรงพยาบาล', 'รพ.') === clinicName || 
+          c.name.replace('รพ.', 'โรงพยาบาล') === clinicName
         );
         
         let pcuName = (row['ชื่อ รพ.สต.'] || row['รพ.สต.'] || row['pcu'] || '').trim();
-        const pcu = clinics.find(c => c.name === pcuName && c.type === 'pcu');
+        // Auto-assign PCU from tambon if not provided
+        if (!pcuName && extractedTambon) {
+            pcuName = 'รพ.สต.' + extractedTambon;
+        }
+
+        let pcu = null;
+        if (pcuName) {
+           pcu = clinics.find(c => c.name === pcuName || c.name === `รพ.สต.${pcuName.replace('รพ.สต.', '').trim()}` || c.name === `รพ.สต. ${pcuName.replace('รพ.สต.', '').trim()}`);
+        }
         
         let riskVal = 'green';
         const riskStr = (row['ระดับความเสี่ยง'] || '').toString();
@@ -243,21 +278,43 @@ export default function DashboardPage() {
 
         // Address Builder
         let fullVillage = row['หมู่บ้าน'] || row['village'] || '';
-        const houseNo = row['บ้านเลขที่'];
-        const moo = row['หมู่ที่'] || row['หมู่'];
         const subdistrict = row['ตำบล'];
-        const district = row['อำเภอ'];
         const province = row['จังหวัด'];
         
-        if (houseNo || subdistrict || district || moo) {
-          fullVillage = `${houseNo ? houseNo + ' ' : ''}${moo ? 'ม.' + moo + ' ' : ''}${fullVillage ? fullVillage + ' ' : ''}${subdistrict ? 'ต.' + subdistrict + ' ' : ''}${district ? 'อ.' + district + ' ' : ''}${province ? 'จ.' + province : ''}`.trim();
+        if (houseNo || subdistrict || extractedAmphoe || moo) {
+          let villagePart = fullVillage;
+          let tambonPart = subdistrict ? 'ต.' + subdistrict + ' ' : '';
+          let amphoePart = extractedAmphoe ? 'อ.' + extractedAmphoe + ' ' : '';
+          let provincePart = province ? 'จ.' + province : '';
+          
+          if (villagePart.includes(tambonPart.trim())) tambonPart = '';
+          if (villagePart.includes(amphoePart.trim())) amphoePart = '';
+          if (villagePart.includes(provincePart.trim())) provincePart = '';
+          
+          fullVillage = `${houseNo ? houseNo + ' ' : ''}${moo ? 'ม.' + moo + ' ' : ''}${villagePart ? villagePart + ' ' : ''}${tambonPart}${amphoePart}${provincePart}`.trim();
         }
 
         // Coordinates
         const lat = row['ละติจูด'] || row['latitude'];
         const lng = row['ลองจิจูด'] || row['longitude'];
-        const finalLat = lat ? parseFloat(lat) : 18.7 + (Math.random() * 0.2);
-        const finalLng = lng ? parseFloat(lng) : 100.7 + (Math.random() * 0.2);
+        
+        let finalLat, finalLng;
+        if (lat && lng && !isNaN(parseFloat(lat))) {
+          finalLat = parseFloat(lat);
+          finalLng = parseFloat(lng);
+        } else if (pcu && pcu.latitude && pcu.longitude) {
+          // Use PCU coordinates + small jitter so points don't perfectly overlap
+          finalLat = parseFloat(pcu.latitude) + (Math.random() * 0.002 - 0.001);
+          finalLng = parseFloat(pcu.longitude) + (Math.random() * 0.002 - 0.001);
+        } else if (clinic && clinic.latitude && clinic.longitude) {
+          // Use Hospital coordinates + small jitter
+          finalLat = parseFloat(clinic.latitude) + (Math.random() * 0.002 - 0.001);
+          finalLng = parseFloat(clinic.longitude) + (Math.random() * 0.002 - 0.001);
+        } else {
+          // Default near Nan center
+          finalLat = 18.7844 + (Math.random() * 0.01 - 0.005);
+          finalLng = 100.7818 + (Math.random() * 0.01 - 0.005);
+        }
 
         return {
           hn: row['HN'] || row['hn'] || row['บัตรประชาชน'] || `HN-${Math.floor(Math.random()*10000)}`,
