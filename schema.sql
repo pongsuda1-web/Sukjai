@@ -14,10 +14,10 @@ CREATE TABLE profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. Create clinics / hospitals reference table
 CREATE TABLE clinics (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
+    amphoe TEXT,
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL
 );

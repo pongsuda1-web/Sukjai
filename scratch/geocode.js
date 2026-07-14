@@ -23,6 +23,7 @@ const amphoeCoords = {
 
 function main() {
     const results = [];
+    const seen = new Set();
     // We add a tiny random offset so pins don't overlap completely
     for (let i = 0; i < lines.length; i++) {
         const parts = lines[i].split('\t');
@@ -36,6 +37,9 @@ function main() {
         if (!pcuName.startsWith('รพ.สต.')) {
             pcuName = 'รพ.สต. ' + pcuName;
         }
+
+        if (seen.has(pcuName)) continue;
+        seen.add(pcuName);
 
         const baseCoords = amphoeCoords[amphoe] || [18.7831, 100.7712];
         const lat = baseCoords[0] + (Math.random() * 0.04 - 0.02);

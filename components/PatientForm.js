@@ -221,9 +221,18 @@ export default function PatientForm({ onClose, onSave, clinics, initialData, cur
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>รพ.สต. ที่ดูแล</label>
                 <select name="pcu_id" value={formData.pcu_id} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
                   <option value="">-- ไม่ระบุ --</option>
-                  {clinics.filter(c => getClinicType(c.name) === 'pcu').map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
+                  {(() => {
+                    const selectedHospital = clinics.find(c => c.id === formData.hospital_id);
+                    const selectedAmphoe = selectedHospital?.amphoe;
+                    return clinics.filter(c => {
+                      if (getClinicType(c.name) !== 'pcu') return false;
+                      // Cascading filter logic:
+                      if (selectedAmphoe && c.amphoe) return c.amphoe === selectedAmphoe;
+                      return true; // Graceful degradation if no hospital selected or PCU missing amphoe
+                    }).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ));
+                  })()}
                 </select>
               </div>
             </div>

@@ -1,0 +1,11 @@
+UPDATE clinics SET latitude = 18.29007, longitude = 99.47436 WHERE name = 'รพ.สต.บ่อ';
+UPDATE clinics SET latitude = 18.28721, longitude = 99.47269 WHERE name = 'รพ.สต. สอบ่อ';
+UPDATE clinics SET latitude = 18.80482, longitude = 100.78012 WHERE name = 'รพ.สต.ผาสิงห์';
+UPDATE clinics SET latitude = 18.77333, longitude = 100.72604 WHERE name = 'รพ.สต.ไชยสถาน';
+UPDATE clinics SET latitude = 18.78545, longitude = 100.77057 WHERE name = 'รพ.สต.ถืมตอง';
+UPDATE clinics SET latitude = 18.53089, longitude = 98.96490 WHERE name = 'รพ.สต.เรือง';
+UPDATE clinics SET latitude = 18.78419, longitude = 100.77320 WHERE name = 'รพ.สต.นาชาว';
+UPDATE clinics SET latitude = 18.84953, longitude = 100.65153 WHERE name = 'รพ.สต.ดู่ใต้';
+UPDATE clinics SET latitude = 18.81162, longitude = 100.70451 WHERE name = 'รพ.สต.กองควาย';
+UPDATE clinics SET latitude = 18.77318, longitude = 100.72515 WHERE name = 'รพ.สต.สวก';
+UPDATE clinics SET latitude = 18.81425, longitude = 100.70645 WHERE name = 'รพ.สต.สะเนียน';
