@@ -326,7 +326,7 @@ export default function DashboardPage() {
           house_no: houseNo || '',
           moo: moo || '',
           tambon: subdistrict || '',
-          amphoe: district || '',
+          amphoe: extractedAmphoe || '',
           province: province || '',
           risk: riskVal,
           smi_v: smiVFinal,
