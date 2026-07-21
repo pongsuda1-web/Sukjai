@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key';
+let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
+  supabaseUrl = 'https://dummy.supabase.co';
+}
+if (!supabaseAnonKey) {
+  supabaseAnonKey = 'dummy_key';
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
