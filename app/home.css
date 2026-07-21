@@ -21,15 +21,32 @@
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 3rem 1rem 3rem;
+    padding: 2rem 1.5rem 3rem;
     margin-top: 1rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
   }
   .hero-image {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1.5rem;
+    align-self: center; /* keep image centered */
   }
   .hero-title {
-    font-size: 2rem !important;
+    font-size: 1.8rem !important;
+    text-align: left;
+  }
+  .hero-description {
+    font-size: 1.1rem !important;
+    text-align: left;
+    max-width: 100%;
   }
 }
 
