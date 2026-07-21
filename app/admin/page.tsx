@@ -2,16 +2,22 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, MessageSquare, BookText, ClipboardList, Users, LogOut } from 'lucide-react';
+import { ShieldCheck, MessageSquare, BookText, ClipboardList, Users, LogOut, Building2 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<{id: number, username: string, role: string} | null>(null);
-  const [activeTab, setActiveTab] = useState<'posts' | 'diaries' | 'surveys' | 'staff'>('posts');
   const [posts, setPosts] = useState<any[]>([]);
   const [diaries, setDiaries] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [surveys, setSurveys] = useState<any[]>([]);
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'posts' | 'diaries' | 'surveys' | 'hospitals' | 'staff'>('posts');
+  const [showHospitalForm, setShowHospitalForm] = useState(false);
+  const [editingHospital, setEditingHospital] = useState<any>(null);
+  const [hospitalForm, setHospitalForm] = useState({
+    name: '', province: '', region: 'north', type: 'provincial', address: '', phone: '', lat: '', lng: ''
+  });
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   
@@ -55,10 +61,21 @@ export default function AdminDashboardPage() {
           if (data.surveys) setSurveys(data.surveys);
           setLoading(false);
         });
+    } else if (activeTab === 'hospitals') {
+      fetchHospitals();
     } else if (activeTab === 'staff' && user.role === 'admin') {
       fetchStaff();
     }
   }, [activeTab, user]);
+
+  const fetchHospitals = () => {
+    fetch('/api/hospitals')
+      .then(res => res.json())
+      .then(data => {
+        setHospitals(data);
+        setLoading(false);
+      });
+  };
 
   const fetchStaff = () => {
     fetch('/api/admin/staff')
@@ -109,6 +126,65 @@ export default function AdminDashboardPage() {
     } catch (e) {
       alert('Error deleting staff');
     }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm('ยืนยันการลบกระทู้นี้พร้อมคอมเมนต์ทั้งหมด?')) return;
+    try {
+      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPosts(posts.filter(p => p.id !== id));
+      } else {
+        alert('ลบไม่สำเร็จ');
+      }
+    } catch (e) {
+      alert('Error deleting post');
+    }
+  };
+
+  const handleDeleteHospital = async (id: string) => {
+    if (!confirm('ยืนยันการลบโรงพยาบาลนี้?')) return;
+    try {
+      const res = await fetch(`/api/admin/hospitals?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setHospitals(hospitals.filter(h => h.id !== id));
+      } else {
+        alert('ลบไม่สำเร็จ');
+      }
+    } catch (e) {
+      alert('Error deleting hospital');
+    }
+  };
+
+  const handleSaveHospital = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const method = editingHospital ? 'PUT' : 'POST';
+      const body = editingHospital ? { ...hospitalForm, id: editingHospital.id } : hospitalForm;
+      const res = await fetch('/api/admin/hospitals', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        setShowHospitalForm(false);
+        setEditingHospital(null);
+        fetchHospitals();
+      } else {
+        alert('บันทึกไม่สำเร็จ');
+      }
+    } catch (e) {
+      alert('Error saving hospital');
+    }
+  };
+
+  const openEditHospital = (h: any) => {
+    setEditingHospital(h);
+    setHospitalForm({
+      name: h.name, province: h.province, region: h.region, type: h.type,
+      address: h.address, phone: h.phone, lat: String(h.lat), lng: String(h.lng)
+    });
+    setShowHospitalForm(true);
   };
 
   if (!user) return <div style={{ textAlign: 'center', padding: '5rem' }}>กำลังตรวจสอบสิทธิ์...</div>;
@@ -188,6 +264,25 @@ export default function AdminDashboardPage() {
         </button>
         {user.role === 'admin' && (
           <button 
+            onClick={() => setActiveTab('hospitals')}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              borderRadius: 'var(--radius-md)', 
+              border: 'none',
+              background: activeTab === 'hospitals' ? 'var(--color-primary-dark)' : '#f1f5f9',
+              color: activeTab === 'hospitals' ? 'white' : 'var(--color-text-muted)',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <Building2 size={18} /> จัดการสถานพยาบาล
+          </button>
+        )}
+        {user.role === 'admin' && (
+          <button 
             onClick={() => setActiveTab('staff')}
             style={{ 
               padding: '0.75rem 1.5rem', 
@@ -229,7 +324,7 @@ export default function AdminDashboardPage() {
                         <Link href={`/community/${post.id}`} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
                           ดูและตอบ
                         </Link>
-                        <button className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', color: '#dc2626', borderColor: '#fca5a5' }} onClick={() => alert('ฟังก์ชันลบกำลังพัฒนา')}>
+                        <button className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', color: '#dc2626', borderColor: '#fca5a5' }} onClick={() => handleDeletePost(post.id)}>
                           ลบ
                         </button>
                       </div>
@@ -302,6 +397,99 @@ export default function AdminDashboardPage() {
                         <div><strong style={{ color: 'var(--color-text-muted)' }}>ความคาดหวัง:</strong> <br/>{survey.expectations || '-'}</div>
                         <div><strong style={{ color: 'var(--color-text-muted)' }}>ได้รับความช่วยเหลือไหม?:</strong> <br/>{survey.is_helpful || '-'}</div>
                         <div><strong style={{ color: 'var(--color-text-muted)' }}>ข้อเสนอแนะ:</strong> <br/>{survey.feedback || '-'}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'hospitals' && user.role === 'admin' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+                <h3>รายชื่อสถานพยาบาลทั้งหมด ({hospitals.length})</h3>
+                {!showHospitalForm && (
+                  <button className="btn btn-primary" onClick={() => {
+                    setEditingHospital(null);
+                    setHospitalForm({ name: '', province: '', region: 'north', type: 'provincial', address: '', phone: '', lat: '', lng: '' });
+                    setShowHospitalForm(true);
+                  }}>+ เพิ่มสถานพยาบาล</button>
+                )}
+              </div>
+
+              {showHospitalForm ? (
+                <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+                  <h4 style={{ marginBottom: '1.5rem' }}>{editingHospital ? 'แก้ไขสถานพยาบาล' : 'เพิ่มสถานพยาบาลใหม่'}</h4>
+                  <form onSubmit={handleSaveHospital} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ชื่อสถานพยาบาล</label>
+                      <input required type="text" className="form-control" value={hospitalForm.name} onChange={e => setHospitalForm({...hospitalForm, name: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ภาค</label>
+                      <select className="form-control" value={hospitalForm.region} onChange={e => setHospitalForm({...hospitalForm, region: e.target.value})}>
+                        <option value="central">ภาคกลาง และ กทม.</option>
+                        <option value="north">ภาคเหนือ</option>
+                        <option value="northeast">ภาคตะวันออกเฉียงเหนือ</option>
+                        <option value="south">ภาคใต้</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>จังหวัด</label>
+                      <input required type="text" className="form-control" value={hospitalForm.province} onChange={e => setHospitalForm({...hospitalForm, province: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ประเภท</label>
+                      <select className="form-control" value={hospitalForm.type} onChange={e => setHospitalForm({...hospitalForm, type: e.target.value})}>
+                        <option value="provincial">โรงพยาบาลศูนย์/ทั่วไป</option>
+                        <option value="community">โรงพยาบาลชุมชน</option>
+                        <option value="private">คลินิก/โรงพยาบาลเอกชน</option>
+                        <option value="wellness">ศูนย์สุขภาพจิต</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>เบอร์โทรศัพท์</label>
+                      <input required type="text" className="form-control" value={hospitalForm.phone} onChange={e => setHospitalForm({...hospitalForm, phone: e.target.value})} />
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ที่อยู่</label>
+                      <input required type="text" className="form-control" value={hospitalForm.address} onChange={e => setHospitalForm({...hospitalForm, address: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ละติจูด (Latitude)</label>
+                      <input required type="number" step="any" className="form-control" value={hospitalForm.lat} onChange={e => setHospitalForm({...hospitalForm, lat: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem' }}>ลองจิจูด (Longitude)</label>
+                      <input required type="number" step="any" className="form-control" value={hospitalForm.lng} onChange={e => setHospitalForm({...hospitalForm, lng: e.target.value})} />
+                    </div>
+                    <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                      <button type="submit" className="btn btn-primary">บันทึกข้อมูล</button>
+                      <button type="button" className="btn btn-outline" onClick={() => setShowHospitalForm(false)}>ยกเลิก</button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {hospitals.map(hospital => (
+                    <div key={hospital.id} className="glass-panel" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '4px solid #0ea5e9' }}>
+                      <div>
+                        <strong style={{ fontSize: '1.1rem' }}>{hospital.name}</strong>
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>
+                          {hospital.type}
+                        </span>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                          {hospital.province} ({hospital.region}) - โทร: {hospital.phone}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => openEditHospital(hospital)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                          แก้ไข
+                        </button>
+                        <button onClick={() => handleDeleteHospital(hospital.id)} className="btn btn-outline" style={{ color: '#ef4444', borderColor: '#fca5a5', padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                          ลบ
+                        </button>
                       </div>
                     </div>
                   ))}

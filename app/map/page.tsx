@@ -1,6 +1,12 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { MapPin, Phone, Building2, Stethoscope, HeartPulse } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const HospitalMap = dynamic(() => import('@/components/views/HospitalMap'), { 
+  ssr: false,
+  loading: () => <div style={{ height: '500px', background: '#f1f5f9', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>กำลังโหลดแผนที่...</div>
+});
 
 interface Hospital {
   id: string;
@@ -123,6 +129,11 @@ export default function MapPage() {
             </select>
           </div>
         </div>
+      </div>
+
+      {/* Map Section */}
+      <div style={{ marginBottom: '3rem' }}>
+        <HospitalMap hospitals={filteredHospitals} />
       </div>
 
       {/* Results */}
