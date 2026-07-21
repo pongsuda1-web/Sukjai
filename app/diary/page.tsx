@@ -47,10 +47,16 @@ export default function DiaryPage() {
 
   useEffect(() => {
     // Check or create anonymous user id
-    let id = localStorage.getItem('nansukjai_user_id');
-    if (!id) {
-      id = 'user_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('nansukjai_user_id', id);
+    let id = 'guest_' + Math.random().toString(36).substr(2, 9);
+    try {
+      const storedId = localStorage.getItem('nansukjai_user_id');
+      if (storedId) {
+        id = storedId;
+      } else {
+        localStorage.setItem('nansukjai_user_id', id);
+      }
+    } catch (e) {
+      console.warn('localStorage is not available, using temporary session id');
     }
     setUserId(id);
     fetchEntries(id);
