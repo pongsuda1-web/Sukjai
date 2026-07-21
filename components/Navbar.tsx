@@ -1,11 +1,16 @@
-'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HeartPulse, Map, Phone, BookOpen, ClipboardList, Beaker, MessageSquare, BookText } from 'lucide-react';
+import { HeartPulse, Map, Phone, BookOpen, ClipboardList, Beaker, MessageSquare, BookText, Menu, X } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   const navLinks = [
     { name: 'หน้าหลัก', href: '/', icon: <HeartPulse size={20} /> },
@@ -19,11 +24,18 @@ export default function Navbar() {
   return (
     <nav className="navbar" style={{ background: 'var(--color-surface)', borderBottom: '2px solid var(--color-primary-light)', padding: '0.5rem 0' }}>
       <div className="navbar-container">
-        <Link href="/" className="navbar-logo" style={{ color: 'var(--color-primary-dark)', gap: '0.75rem' }}>
-          <img src="/images/dog_mascot.jpg" alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary-light)' }} />
-          <span style={{ fontWeight: '700', fontSize: '1.3rem' }}>NAN Sukjai</span>
-        </Link>
-        <div className="navbar-links">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Link href="/" className="navbar-logo" style={{ color: 'var(--color-primary-dark)', gap: '0.75rem' }}>
+            <img src="/images/dog_mascot.jpg" alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary-light)' }} />
+            <span style={{ fontWeight: '700', fontSize: '1.3rem' }}>NAN Sukjai</span>
+          </Link>
+          
+          <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        <div className={`navbar-links ${isMobileMenuOpen ? 'active' : ''}`}>
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -41,7 +53,7 @@ export default function Navbar() {
             <MessageSquare size={20} />
             <span>เว็บบอร์ด</span>
           </Link>
-          <Link href="/research" className="btn btn-outline" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1rem', background: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' }}>
+          <Link href="/research" className="btn btn-outline nav-btn-research" onClick={() => setIsMobileMenuOpen(false)}>
             <Beaker size={20} />
             <span>เข้าร่วมงานวิจัย</span>
           </Link>
