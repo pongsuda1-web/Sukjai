@@ -9,25 +9,16 @@ export default function Home() {
 
   return (
     <div className="home-page">
-        {/* Hero Section */}
-        <section style={{ 
-          textAlign: 'center', 
-          padding: '4rem 1.5rem', 
-          background: 'linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-secondary-light) 100%)', 
-          borderRadius: 'var(--radius-lg)',
-          marginBottom: '4rem',
-          boxShadow: 'var(--shadow-soft)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <img src="/images/hero_bear.jpg" alt="Mascot Bear" style={{ width: '200px', height: '200px', objectFit: 'cover', borderRadius: '50%', marginBottom: '1.5rem', border: '4px solid white', boxShadow: 'var(--shadow-soft)' }} />
-            <h1 className="section-title" style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>NAN Sukjai (น่านสุขใจ)</h1>
-            <p className="text-muted" style={{ fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
-              พื้นที่ปลอดภัยสำหรับหัวใจของคุณ แหล่งรวบรวมข้อมูลสุขภาพจิต สถานพยาบาล สายด่วน และแบบประเมินเบื้องต้น
-            </p>
-          </div>
-        </section>
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <img src="/images/hero_bear.jpg" alt="Mascot Bear" className="hero-image" />
+          <h1 className="hero-title">NAN Sukjai (น่านสุขใจ)</h1>
+          <p className="hero-description">
+            พื้นที่ปลอดภัยสำหรับหัวใจของคุณ แหล่งรวบรวมข้อมูลสุขภาพจิต สถานพยาบาล สายด่วน และแบบประเมินเบื้องต้น
+          </p>
+        </div>
+      </section>
 
       {/* Quick Services */}
       <section className="services-section container">
