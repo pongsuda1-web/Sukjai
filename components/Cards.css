@@ -1,0 +1,100 @@
+/* Shared CSS for Cards */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-summary {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.card-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Article Card Specifics */
+.card-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  width: fit-content;
+}
+
+.cat-psychiatric { background-color: #fee2e2; color: #dc2626; }
+.cat-family { background-color: #fef3c7; color: #d97706; }
+.cat-finance { background-color: #dcfce3; color: #16a34a; }
+.cat-general { background-color: #e0e7ff; color: #4f46e5; }
+
+.read-more {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Hotline Card Specifics */
+.hotline-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.hotline-icon-wrapper {
+  background-color: var(--color-background);
+  padding: 0.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-mental { color: #ec4899; }
+.icon-violence { color: var(--color-danger); }
+.icon-finance { color: var(--color-success); }
+.icon-general { color: var(--color-primary); }
+
+.hotline-btn {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+/* Assessment Card Specifics */
+.assessment-card {
+  text-align: center;
+}
+
+.assessment-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.icon-assessment {
+  color: var(--color-secondary);
+  background: var(--color-secondary-light);
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+}

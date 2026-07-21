@@ -15,7 +15,10 @@ export const metadata = {
   },
   icons: {
     apple: "/icon-192.png",
-  },
+  }
+};
+
+export const viewport = {
   themeColor: "#0277bd"
 };
 
