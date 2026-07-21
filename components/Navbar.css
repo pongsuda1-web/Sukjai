@@ -122,13 +122,14 @@
   .nav-link {
     width: 100%;
     justify-content: flex-start;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     border-radius: var(--radius-md);
+    font-size: 0.95rem;
   }
   
   .nav-btn-research {
     margin-left: 0;
-    margin-top: 0.5rem;
-    justify-content: center;
+    margin-top: 0.25rem;
+    justify-content: flex-start;
   }
 }

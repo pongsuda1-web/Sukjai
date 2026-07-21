@@ -44,13 +44,14 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.icon}
                 <span>{link.name}</span>
               </Link>
             );
           })}
-          <Link href="/community" className={`nav-link ${pathname.includes('/community') ? 'active' : ''}`}>
+          <Link href="/community" className={`nav-link ${pathname.includes('/community') ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
             <MessageSquare size={20} />
             <span>เว็บบอร์ด</span>
           </Link>
