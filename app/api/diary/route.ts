@@ -22,8 +22,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ logs });
   } catch (error) {
-    console.error('Error fetching diaries:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : JSON.stringify(error) }, { status: 500 });
   }
 }
 
@@ -51,6 +50,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, id: data?.id });
   } catch (error) {
     console.error('Error in diary API:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : JSON.stringify(error) }, { status: 500 });
   }
 }
