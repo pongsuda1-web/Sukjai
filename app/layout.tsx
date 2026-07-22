@@ -1,12 +1,24 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+
+export const viewport: Viewport = {
+  themeColor: '#4f46e5',
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'NAN Sukjai (น่านสุขใจ) - บริการให้คำปรึกษาทางด้านจิตใจ',
   description: 'แพลตฟอร์มรวบรวมแหล่งความช่วยเหลือ ให้คำปรึกษาทางด้านจิตใจ ค้นหาสถานพยาบาลใกล้เคียง และแบบประเมินสุขภาพจิตเบื้องต้น',
   keywords: 'สุขภาพจิต, ซึมเศร้า, ให้คำปรึกษา, สายด่วนสุขภาพจิต, คลินิกจิตเวช, สุขใจ',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'น่านสุขใจ',
+  },
 };
 
 export default function RootLayout({
