@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HeartPulse, Map, Phone, BookOpen, ClipboardList, Beaker, MessageSquare, BookText, Menu, X, HeartHandshake } from 'lucide-react';
+import { HeartPulse, Map, Phone, BookOpen, ClipboardList, Beaker, MessageSquare, BookText, Menu, X, HeartHandshake, Bot } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -16,6 +16,7 @@ export default function Navbar() {
   const navLinks = [
     { name: 'หน้าหลัก', href: '/', icon: <HeartPulse size={20} /> },
     { name: 'ฮีลใจด่วน', href: '/relief', icon: <HeartHandshake size={20} /> },
+    { name: 'คุยกับบอท', href: '/chat', icon: <Bot size={20} /> },
     { name: 'สถานพยาบาล', href: '/map', icon: <Map size={20} /> },
     { name: 'สายด่วน', href: '/hotlines', icon: <Phone size={20} /> },
     { name: 'คลังความรู้', href: '/resources', icon: <BookOpen size={20} /> },

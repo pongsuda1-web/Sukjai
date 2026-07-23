@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PhoneCall, HeartPulse, ShieldAlert, Navigation, AlertTriangle, Eye, MessageCircleWarning, Activity, HeartHandshake } from 'lucide-react';
+import { PhoneCall, HeartPulse, ShieldAlert, Navigation, AlertTriangle, Eye, MessageCircleWarning, Activity, HeartHandshake, Bot } from 'lucide-react';
 import './home.css';
 import { hotlines } from '../data/mockData';
 import HotlineCard from '../components/HotlineCard';
@@ -23,7 +23,7 @@ export default function Home() {
       {/* Quick Services */}
       <section className="services-section container">
         <h2 className="section-title">บริการของเรา</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: '1rem' }}>
           <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
             <div style={{ background: 'var(--color-accent-light)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: '#0284c7' }}>
               <HeartPulse size={32} />
@@ -31,6 +31,15 @@ export default function Home() {
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>สุขภาพจิตคือเรื่องของทุกคน</h3>
             <p className="text-muted" style={{ lineHeight: '1.6' }}>การดูแลจิตใจมีความสำคัญไม่แพ้ร่างกาย ไม่ใช่เรื่องผิดปกติที่จะขอความช่วยเหลือ</p>
           </div>
+          <Link href="/chat" style={{ textDecoration: 'none' }}>
+            <div className="glass-panel hover-lift" style={{ padding: '2rem', textAlign: 'center', height: '100%', border: '2px solid var(--color-primary)' }}>
+               <div style={{ background: 'var(--color-primary-light)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: 'var(--color-primary-dark)' }}>
+                <Bot size={32} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>คุยกับน้องใจดี (AI)</h3>
+              <p className="text-muted" style={{ lineHeight: '1.6' }}>แชทบอทรับฟังปัญหา ให้คำปรึกษาเบื้องต้นตลอด 24 ชั่วโมง</p>
+            </div>
+          </Link>
           <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
               <img src="/images/cat_mascot.jpg" alt="Cat Mascot" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-primary-light)' }} />

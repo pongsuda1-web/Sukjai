@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
+import MoodCalendar from '../../components/MoodCalendar';
+import Badges from '../../components/Badges';
 
 interface DiaryEntry {
   id: number;
@@ -169,7 +171,14 @@ export default function DiaryPage() {
         </button>
       </form>
 
-      <h2 className="section-title" style={{ fontSize: '1.8rem', textAlign: 'left', marginBottom: '1.5rem' }}>ประวัติไดอารี่ของคุณ</h2>
+      <h2 className="section-title" style={{ fontSize: '1.8rem', textAlign: 'left', marginBottom: '1.5rem' }}>สถิติและประวัติของคุณ</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '2rem', marginBottom: '3rem' }}>
+        <MoodCalendar entries={entries} moods={moods} />
+        <Badges entryCount={entries.length} />
+      </div>
+
+      <h2 className="section-title" style={{ fontSize: '1.5rem', textAlign: 'left', marginBottom: '1.5rem' }}>บันทึกที่ผ่านมา</h2>
       {entries.length === 0 ? (
         <p className="text-muted" style={{ textAlign: 'center', padding: '2rem' }}>ยังไม่มีบันทึกไดอารี่ ลองบันทึกอารมณ์แรกของคุณดูสิครับ</p>
       ) : (
