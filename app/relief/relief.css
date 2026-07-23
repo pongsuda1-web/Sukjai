@@ -1,0 +1,91 @@
+.relief-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.breathing-circle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.breathing-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem;
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  transition: all linear;
+}
+
+/* Javascript will control the scale and transition duration */
+.breathing-circle.inhale {
+  transform: scale(1.8);
+  background: radial-gradient(circle, #818cf8 0%, #4f46e5 100%);
+  box-shadow: 0 0 40px rgba(79, 70, 229, 0.6);
+}
+
+.breathing-circle.hold {
+  transform: scale(1.8);
+  background: radial-gradient(circle, #34d399 0%, #10b981 100%);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+}
+
+.breathing-circle.exhale {
+  transform: scale(1);
+  background: radial-gradient(circle, #93c5fd 0%, #3b82f6 100%);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.thought-destroyer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.thought-textarea {
+  width: 100%;
+  height: 150px;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: none;
+  transition: all 0.5s ease;
+}
+
+.thought-textarea:focus {
+  outline: none;
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
+}
+
+.shatter-animation {
+  animation: shatter 1s forwards;
+}
+
+@keyframes shatter {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+  20% { transform: scale(1.05) rotate(-2deg); opacity: 1; filter: blur(0); }
+  100% { transform: scale(0) rotate(15deg) translateY(100px); opacity: 0; filter: blur(10px); }
+}
+
+.music-player {
+  width: 100%;
+  height: 250px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin-top: 1rem;
+}

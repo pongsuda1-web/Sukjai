@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PhoneCall, HeartPulse, ShieldAlert, Navigation, AlertTriangle, Eye, MessageCircleWarning, Activity } from 'lucide-react';
+import { PhoneCall, HeartPulse, ShieldAlert, Navigation, AlertTriangle, Eye, MessageCircleWarning, Activity, HeartHandshake } from 'lucide-react';
 import './home.css';
 import { hotlines } from '../data/mockData';
 import HotlineCard from '../components/HotlineCard';
@@ -38,13 +38,15 @@ export default function Home() {
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>เริ่มต้นที่การสำรวจตัวเอง</h3>
             <p className="text-muted" style={{ lineHeight: '1.6' }}>ใช้แบบประเมินเบื้องต้นของเราเพื่อทำความเข้าใจสภาวะอารมณ์ของคุณในปัจจุบัน</p>
           </div>
-          <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-              <img src="/images/dog_mascot.jpg" alt="Dog Mascot" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-secondary-light)' }} />
+          <Link href="/relief" style={{ textDecoration: 'none' }}>
+            <div className="glass-panel hover-lift" style={{ padding: '2rem', textAlign: 'center', height: '100%', background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(243,232,255,0.9))', border: '2px solid #d8b4fe' }}>
+               <div style={{ background: '#f3e8ff', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: '#a855f7' }}>
+                <HeartHandshake size={32} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#9333ea' }}>เครื่องมือฮีลใจด่วน (SOS)</h3>
+              <p className="text-muted" style={{ lineHeight: '1.6', color: '#6b7280' }}>ฝึกลมหายใจลดแพนิก ระเบิดความเครียด และฟังเพลงผ่อนคลาย</p>
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>ไม่โดดเดี่ยว</h3>
-            <p className="text-muted" style={{ lineHeight: '1.6' }}>เราได้รวบรวมสถานพยาบาลและสายด่วนที่พร้อมรับฟังและช่วยเหลือคุณในทุกภาค</p>
-          </div>
+          </Link>
         </div>
       </section>
 

@@ -31,6 +31,10 @@ export default function ResourcesPage() {
           onClick={() => setFilter('family')}
         >ครอบครัว & ความสัมพันธ์</button>
         <button 
+          className={`btn ${filter === 'teen' ? 'btn-primary' : 'btn-outline'}`}
+          onClick={() => setFilter('teen')}
+        >วัยรุ่น & วัยเรียน</button>
+        <button 
           className={`btn ${filter === 'general' ? 'btn-primary' : 'btn-outline'}`}
           onClick={() => setFilter('general')}
         >การปรับตัว & ทั่วไป</button>
