@@ -13,7 +13,7 @@ export default function ChatPage() {
     {
       id: '1',
       sender: 'bot',
-      text: 'สวัสดีค่ะ ฉันคือน้องใจดี 🌻 บอทผู้ช่วยรับฟังและให้กำลังใจ คุณมีเรื่องอะไรไม่สบายใจ หรืออยากระบายให้ฟัง พิมพ์มาได้เลยนะคะ (พื้นที่นี้เป็นความลับค่ะ)'
+      text: 'สวัสดีค่ะ ฉันคือ "น้องน่านสุขใจ" 🌻 บอทผู้ช่วยรับฟังและให้กำลังใจ คุณมีเรื่องอะไรไม่สบายใจ หรืออยากระบายให้ฟัง พิมพ์มาได้เลยนะคะ (พื้นที่นี้เป็นความลับค่ะ)'
     }
   ]);
   const [input, setInput] = useState('');
@@ -61,7 +61,7 @@ export default function ChatPage() {
       
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h1 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-          <Bot size={32} className="text-primary" /> คุยกับน้องใจดี (AI)
+          <Bot size={32} className="text-primary" /> คุยกับน้องน่านสุขใจ (AI)
         </h1>
         <p className="text-muted">พื้นที่ปลอดภัยสำหรับระบายความรู้สึก</p>
       </div>
@@ -72,7 +72,7 @@ export default function ChatPage() {
         <div style={{ background: '#fffbeb', padding: '0.75rem', fontSize: '0.85rem', color: '#b45309', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', borderBottom: '1px solid #fde68a' }}>
           <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
           <p style={{ margin: 0 }}>
-            น้องใจดีเป็นเพียงระบบ AI ให้คำปรึกษาเบื้องต้น ไม่สามารถทดแทนการรักษาโดยแพทย์ได้ หากมีความคิดอยากทำร้ายตัวเอง กรุณาโทร 1323 (สายด่วนสุขภาพจิต) หรือ 191 ทันที
+            น้องน่านสุขใจเป็นเพียงระบบ AI ให้คำปรึกษาเบื้องต้น ไม่สามารถทดแทนการรักษาโดยแพทย์ได้ หากมีความคิดอยากทำร้ายตัวเอง กรุณาโทร 1323 (สายด่วนสุขภาพจิต) หรือ 191 ทันที
           </p>
         </div>
 
