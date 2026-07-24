@@ -72,13 +72,22 @@
 }
 
 .shatter-animation {
-  animation: shatter 1s forwards;
+  animation: crumpleAndExplode 1.2s forwards cubic-bezier(0.36, 0, 0.66, -0.56);
 }
 
-@keyframes shatter {
-  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
-  20% { transform: scale(1.05) rotate(-2deg); opacity: 1; filter: blur(0); }
-  100% { transform: scale(0) rotate(15deg) translateY(100px); opacity: 0; filter: blur(10px); }
+@keyframes crumpleAndExplode {
+  /* Initial state */
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+  
+  /* Start crumpling */
+  15% { transform: scale(0.9) skew(3deg, 3deg) rotate(2deg); opacity: 1; background: #e2e8f0; border-radius: 10px; }
+  30% { transform: scale(0.7) skew(-5deg, -5deg) rotate(-3deg); opacity: 0.9; background: #cbd5e1; border-radius: 20px; }
+  45% { transform: scale(0.4) skew(10deg, 10deg) rotate(15deg); opacity: 0.8; background: #94a3b8; border-radius: 50%; }
+  60% { transform: scale(0.2) rotate(45deg); opacity: 1; background: #ef4444; filter: brightness(1.5); }
+  
+  /* Explosion! */
+  70% { transform: scale(1.5) rotate(90deg); opacity: 0.8; background: #ffed4a; filter: blur(2px) brightness(2); }
+  100% { transform: scale(3) rotate(180deg) translateY(-50px); opacity: 0; filter: blur(10px); }
 }
 
 .music-player {
