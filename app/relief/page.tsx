@@ -53,7 +53,7 @@ export default function ReliefPage() {
     setTimeout(() => {
       setThought('');
       setIsShattering(false);
-    }, 1200); // Wait for animation to finish
+    }, 2500); // Wait for animation to finish
   };
 
   return (
@@ -140,8 +140,8 @@ export default function ReliefPage() {
             onChange={(e) => setThought(e.target.value)}
             ></textarea>
             {isShattering && (
-              <div style={{ position: 'absolute', bottom: '-40px', left: '50%', transform: 'translateX(-50%)', color: '#64748b', animation: 'fade-in-out 1.2s forwards' }}>
-                <Trash2 size={64} />
+              <div style={{ position: 'absolute', bottom: '-70px', left: '50%', transform: 'translateX(-50%)', color: '#64748b', animation: 'fade-in-out 2.5s forwards' }}>
+                <Trash2 size={120} />
               </div>
             )}
           </div>
