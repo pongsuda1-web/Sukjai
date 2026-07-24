@@ -78,7 +78,7 @@ export default function ReliefPage() {
           onClick={() => setActiveTab('destroy')}
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <Flame size={18} /> ระเบิดความเครียด
+          <Trash2 size={18} /> ทิ้งความเครียด
         </button>
         <button 
           className={`btn ${activeTab === 'music' ? 'btn-primary' : 'btn-outline'}`}
@@ -123,29 +123,37 @@ export default function ReliefPage() {
 
       {/* Destroy Section */}
       {activeTab === 'destroy' && (
-        <div className="glass-panel thought-destroyer" style={{ padding: '3rem 1.5rem' }}>
-          <h2 style={{ color: '#e11d48', marginBottom: '1rem' }}>กล่องระเบิดความเครียด</h2>
+        <div className="glass-panel thought-destroyer" style={{ padding: '3rem 1.5rem', position: 'relative' }}>
+          <h2 style={{ color: '#0f172a', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <Trash2 size={28} /> ถังขยะอารมณ์
+          </h2>
           <p className="text-muted" style={{ marginBottom: '2rem' }}>
-            พิมพ์ความรู้สึกแย่ๆ ความโกรธ หรือความกังวลลงไป แล้วกดปุ่มเพื่อ <strong>ทำลายมันทิ้ง</strong><br/>
+            พิมพ์ความรู้สึกแย่ๆ ความโกรธ หรือความกังวลลงไป แล้วกดปุ่มเพื่อ <strong>ขยำมันทิ้งลงถังขยะ</strong><br/>
             (ข้อความจะไม่ถูกบันทึกหรือส่งไปที่ใดทั้งสิ้น)
           </p>
 
-          <textarea 
-            className={`thought-textarea ${isShattering ? 'shatter-animation' : ''}`}
-            placeholder="พิมพ์สิ่งที่ทำให้คุณรู้สึกแย่ตรงนี้..."
+          <div style={{ position: 'relative' }}>
+            <textarea 
+              className={`thought-textarea ${isShattering ? 'crumple-animation' : ''}`}
+              placeholder="พิมพ์สิ่งที่ทำให้คุณรู้สึกแย่ตรงนี้..."
             value={thought}
             onChange={(e) => setThought(e.target.value)}
-            disabled={isShattering}
-          ></textarea>
+            ></textarea>
+            {isShattering && (
+              <div style={{ position: 'absolute', bottom: '-40px', left: '50%', transform: 'translateX(-50%)', color: '#64748b', animation: 'fade-in-out 1.2s forwards' }}>
+                <Trash2 size={64} />
+              </div>
+            )}
+          </div>
 
           <div style={{ marginTop: '2rem' }}>
             <button 
               className="btn btn-primary" 
               onClick={handleDestroy} 
               disabled={isShattering || !thought.trim()}
-              style={{ background: '#e11d48', borderColor: '#e11d48', fontSize: '1.2rem', padding: '0.75rem 2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{ background: '#334155', borderColor: '#334155', fontSize: '1.2rem', padding: '0.75rem 2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
-              <Trash2 size={24} /> ทำลายทิ้งเลย!
+              <Trash2 size={24} /> ขยำทิ้งเลย!
             </button>
           </div>
         </div>
